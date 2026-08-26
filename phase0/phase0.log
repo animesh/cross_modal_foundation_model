@@ -1,0 +1,27 @@
+12:37:58  INFO     === Step 1: Download data from PRIDE ===
+12:37:59  INFO     
+=== Step 2a: Load PXD014791 (LFQ) ===
+12:38:00  ERROR      File not found: data/PXD014791/proteinGroups.txt
+Please download proteinGroups.txt from PRIDE PXD014791 (combined/txt/proteinGroups.txt) and place it there.
+12:38:00  ERROR      --> Run without --skip-download, or manually place proteinGroups.txt
+12:38:00  INFO     
+=== Step 2b: Load ProTargetMiner (TMT) ===
+12:38:00  WARNING  Missing: data/PXD009775/proteinGroups.txt
+Download from https://www.ebi.ac.uk/pride/archive/projects/PXD009775
+(combined/txt/proteinGroups.txt)
+12:38:00  WARNING  Missing: data/PXD009644/proteinGroups.txt
+Download from https://www.ebi.ac.uk/pride/archive/projects/PXD009644
+(combined/txt/proteinGroups.txt)
+12:38:00  WARNING  Missing: data/PXD013134/proteinGroups.txt
+Download from https://www.ebi.ac.uk/pride/archive/projects/PXD013134
+(combined/txt/proteinGroups.txt)
+12:38:00  ERROR      No data loaded for ProTargetMiner. Check download and channel map (see HARDCODED_CHANNEL_MAP in parse_tmt.py).
+12:38:00  ERROR      --> Fill in HARDCODED_CHANNEL_MAP in parse_tmt.py from Saei 2019 Supp Table 2
+12:38:00  ERROR    No results to summarise. Check errors above.
+12:45:05  INFO     === Step 1: Download data from PRIDE ===
+12:47:54  INFO     
+=== Step 2a: Load PXD014791 (LFQ) ===
+12:47:55  ERROR      File not found: data/PXD014791/proteinGroups.txt
+Please download proteinGroups.txt from PRIDE PXD014791 (combined/txt/proteinGroups.txt) and place it there.
+12:47:55  ERROR      --> Run without --skip-download, or manually place proteinGroups.txt
+12:47:55  ERROR    No results to summarise. Check errors above.
