@@ -194,38 +194,44 @@ def _plot_figure3(results: pd.DataFrame, out_path: str) -> None:
     metrics = ["pearson_top100", "pearson_full"]
     metric_labels = ["Top-100 DE Pearson (primary)", "Full-proteome Pearson"]
 
-    # Paper values from Figure 3 (approximate reads for overlay)
+    # Paper values from Figure 3 (absolute Pearson = base_70M + delta label).
+    # Base values: PXD014791 top-100=0.542, full=0.270; PTM top-100=0.746, full=0.730
+    #
+    # KEY FINDING: HVG and PCA outperform the best CPT model on both datasets.
+    #   PXD014791:      CPT=0.612, HVG=0.665, PCA=0.674
+    #   ProTargetMiner: CPT=0.813, HVG=0.902, PCA=0.906
+    # Not discussed in the paper text -- only visible in Figure 3.
     paper_values = {
         "PXD014791": {
             "pearson_top100": {
-                "control-mean": None,
-                "perturbation-mean": 0.54,
-                "HVG": 0.54,
-                "PCA": 0.54,
-                "additive-linear": 0.54,
+                "control-mean":      None,
+                "perturbation-mean": 0.541,
+                "additive-linear":   0.475,
+                "HVG":               0.665,
+                "PCA":               0.674,
             },
             "pearson_full": {
-                "control-mean": 0.000,
-                "perturbation-mean": 0.27,
-                "HVG": 0.26,
-                "PCA": 0.26,
-                "additive-linear": 0.26,
+                "control-mean":      None,
+                "perturbation-mean": 0.219,
+                "additive-linear":   0.229,
+                "HVG":               0.415,
+                "PCA":               0.425,
             },
         },
         "ProTargetMiner": {
             "pearson_top100": {
-                "control-mean": None,
-                "perturbation-mean": 0.75,
-                "HVG": -0.652,
-                "PCA": -0.650,
-                "additive-linear": -0.652,
+                "control-mean":      None,
+                "perturbation-mean": 0.094,
+                "additive-linear":   0.096,
+                "HVG":               0.902,
+                "PCA":               0.906,
             },
             "pearson_full": {
-                "control-mean": 0.000,
-                "perturbation-mean": 0.73,
-                "HVG": -0.658,
-                "PCA": -0.623,
-                "additive-linear": -0.658,
+                "control-mean":      None,
+                "perturbation-mean": 0.072,
+                "additive-linear":   0.107,
+                "HVG":               0.881,
+                "PCA":               0.881,
             },
         },
     }
