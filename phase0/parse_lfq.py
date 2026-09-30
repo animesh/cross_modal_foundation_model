@@ -255,13 +255,10 @@ def load_pxd014791(
             valid_cols.append(col)
             continue
 
-        # --- Fallback path: token-based parsing (samples not in metadata) ---
-        meta = _parse_sample(suffix)
-        if meta is None:
-            skipped_no_drug += 1
-            continue
-        records.append(meta)
-        valid_cols.append(col)
+        # Sample not in Metadata-Table.xlsx -- auxiliary sample outside formal design.
+        # Xiong 2022 (Scientific Data): 308 cell line/drug + 64 HeLa + 9 auxiliary = 381.
+        # The 9 auxiliary (PRE, EST, one ERL) are pilot runs; exclude them.
+        skipped_no_drug += 1
 
     logger.info(
         f"  Parsed: {len(records)} samples kept, "

@@ -88,6 +88,56 @@ pipenv run python run_phase0.py --dataset pxd   # PXD014791 LFQ
 pipenv run python run_phase0.py --dataset ptm   # ProTargetMiner TMT
 ```
 
+Check
+
+```
+pipenv run python run_phase0.py --skip-download --dataset pxd
+10:25:41  INFO     === Step 1: Skipping download (--skip-download) ===
+10:25:41  INFO     
+=== Step 2a: Load PXD014791 (LFQ) ===
+10:25:51  INFO     Loading data/PXD014791/proteinGroups.txt ...
+10:26:01  INFO       Raw: 7193 protein groups, 3466 columns
+10:26:01  INFO       After MQ filters: 6413 protein groups
+10:26:01  INFO       Found 381 LFQ intensity columns
+10:26:02  INFO       Parsed: 308 samples kept, 59 HeLa skipped, 14 no-drug-match skipped
+10:26:02  INFO       Applying Metadata-Table.xlsx ...
+10:26:02  INFO       Metadata matched 308 samples, 0 inferred from gel/experiment, 0 still unmatched (using experiment-number proxy)
+10:26:02  INFO       Cell lines in data: ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+10:26:02  INFO       Samples: 237 drug-treated, 71 control
+  Unique donors (proxy): 4 -- ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+  Unique drugs: 22 -- ['Afatinib', 'Axitinib', 'Bosutinib', 'Cabozantinib', 'Dabrafenib', 'Dasatinib', 'Erlotinib', 'Gefitinib', 'Imatinib', 'Lapatinib', 'Nilotinib', 'Pazopanib', 'Ponatinib', 'Regorafenib', 'Ruxolitinib', 'Sorafenib', 'Sunitinib', 'Tofacitinib', 'Trametinib', 'Trastuzumab', 'Vandetanib', 'Vemurafenib']
+10:26:02  INFO       Held-out drugs found: 21/21 -- missing: none
+10:26:02  INFO       Training drugs found: 1/1 -- {'Trastuzumab'}
+10:26:03  INFO       PXD014791: 308 samples x 6214 proteins (44.2% non-NaN)
+10:26:03  INFO       Total pairs: 60 (59 held-out, 1 training)
+10:26:03  INFO       PXD014791: 59 held-out pairs (paper reports 58)
+10:26:03  INFO     
+============================================================
+10:26:03  INFO     Dataset: PXD014791  |  59 held-out pairs
+10:26:03  INFO     ============================================================
+10:26:05  INFO       Processed 10/59 pairs ...
+10:26:06  INFO       Processed 20/59 pairs ...
+10:26:07  INFO       Processed 30/59 pairs ...
+10:26:08  INFO       Processed 40/59 pairs ...
+10:26:08  INFO       Processed 50/59 pairs ...
+10:26:09  INFO       Saved per-pair results: results/pxd014791_per_pair.csv
+10:26:09  INFO     
+=== Summary (mean Pearson across held-out pairs) ===
+10:26:09  INFO     
+                            pearson_full              pearson_top100              spearman_full              spearman_top100             
+                                    mean    std count           mean    std count          mean    std count            mean    std count
+dataset   baseline                                                                                                                       
+PXD014791 HVG                      0.337  0.081    59          0.557  0.090    59         0.378  0.117    59           0.519  0.098    59
+          PCA                      0.174  0.086    59          0.374  0.142    59         0.157  0.131    59           0.368  0.125    59
+          additive-linear          0.281  0.131    59          0.462  0.165    59         0.248  0.160    59           0.415  0.173    59
+          control-mean               NaN    NaN     0            NaN    NaN     0           NaN    NaN     0             NaN    NaN     0
+          perturbation-mean        0.225  0.090    59          0.469  0.144    59         0.190  0.111    59           0.457  0.128    59
+10:26:10  INFO     
+Figure saved: results/phase0_figure3.png
+10:26:10  INFO     
+=== Phase 0 complete ===
+```
+
 ## Data acquisition -- PXD014791
 
 The PRIDE FTP lists `Search.zip` (22.8 GB) containing `proteinGroups.txt`. The HTTP server doesn't honour Range requests so we use FTP REST (seek) + RETR to extract only the target file (~200 MB download vs 22 GB):

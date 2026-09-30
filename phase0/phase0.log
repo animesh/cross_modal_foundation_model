@@ -683,3 +683,135 @@ PXD014791 HVG                      0.340  0.077    59          0.563  0.091    5
 Figure saved: results/phase0_figure3.png
 09:51:34  INFO     
 === Phase 0 complete ===
+10:00:00  INFO     === Step 1: Skipping download (--skip-download) ===
+10:00:00  INFO     
+=== Step 2a: Load PXD014791 (LFQ) ===
+10:00:01  INFO     Loading data/PXD014791/proteinGroups.txt ...
+10:00:11  INFO       Raw: 7193 protein groups, 3466 columns
+10:00:12  INFO       After MQ filters: 6413 protein groups
+10:00:12  INFO       Found 381 LFQ intensity columns
+10:00:12  INFO       Parsed: 317 samples kept, 59 HeLa skipped, 5 no-drug-match skipped
+10:00:12  INFO       Applying Metadata-Table.xlsx ...
+10:00:12  INFO       Metadata matched 308 samples, 9 inferred from gel/experiment, 0 still unmatched (using experiment-number proxy)
+10:00:12  INFO       Cell lines in data: ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+10:00:12  INFO       Samples: 246 drug-treated, 71 control
+  Unique donors (proxy): 4 -- ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+  Unique drugs: 23 -- ['Afatinib', 'Axitinib', 'Bosutinib', 'Cabozantinib', 'Dabrafenib', 'Dasatinib', 'Erlotinib', 'Estaurosporine', 'Gefitinib', 'Imatinib', 'Lapatinib', 'Nilotinib', 'Pazopanib', 'Ponatinib', 'Regorafenib', 'Ruxolitinib', 'Sorafenib', 'Sunitinib', 'Tofacitinib', 'Trametinib', 'Trastuzumab', 'Vandetanib', 'Vemurafenib']
+10:00:12  INFO       Held-out drugs found: 21/21 -- missing: none
+10:00:12  INFO       Training drugs found: 1/1 -- {'Trastuzumab'}
+10:00:13  INFO       PXD014791: 317 samples x 6214 proteins (44.1% non-NaN)
+10:00:13  INFO       Total pairs: 61 (59 held-out, 2 training)
+10:00:13  INFO       PXD014791: 59 held-out pairs (paper reports 58)
+10:00:13  INFO     
+============================================================
+10:00:13  INFO     Dataset: PXD014791  |  59 held-out pairs
+10:00:13  INFO     ============================================================
+10:00:14  INFO       Processed 10/59 pairs ...
+10:00:15  INFO       Processed 20/59 pairs ...
+10:00:16  INFO       Processed 30/59 pairs ...
+10:00:17  INFO       Processed 40/59 pairs ...
+10:00:18  INFO       Processed 50/59 pairs ...
+10:00:19  INFO       Saved per-pair results: results/pxd014791_per_pair.csv
+10:00:19  INFO     
+=== Summary (mean Pearson across held-out pairs) ===
+10:00:19  INFO     
+                            pearson_full              pearson_top100              spearman_full              spearman_top100             
+                                    mean    std count           mean    std count          mean    std count            mean    std count
+dataset   baseline                                                                                                                       
+PXD014791 HVG                      0.340  0.077    59          0.563  0.091    59         0.380  0.115    59           0.525  0.094    59
+          PCA                      0.176  0.085    59          0.378  0.136    59         0.158  0.131    59           0.373  0.117    59
+          additive-linear          0.286  0.133    59          0.466  0.169    59         0.256  0.156    59           0.425  0.173    59
+          control-mean               NaN    NaN     0            NaN    NaN     0           NaN    NaN     0             NaN    NaN     0
+          perturbation-mean        0.230  0.088    59          0.477  0.135    59         0.193  0.109    59           0.465  0.115    59
+10:00:20  INFO     
+Figure saved: results/phase0_figure3.png
+10:00:20  INFO     
+=== Phase 0 complete ===
+21:11:16  INFO     === Step 1: Skipping download (--skip-download) ===
+21:11:16  INFO     
+=== Step 2a: Load PXD014791 (LFQ) ===
+21:11:27  INFO     Loading data/PXD014791/proteinGroups.txt ...
+21:11:40  INFO       Raw: 7193 protein groups, 3466 columns
+21:11:42  INFO       After MQ filters: 6413 protein groups
+21:11:42  INFO       Found 381 LFQ intensity columns
+21:11:43  INFO       Parsed: 308 samples kept, 59 HeLa skipped, 14 no-drug-match skipped
+21:11:43  INFO       Applying Metadata-Table.xlsx ...
+21:11:43  INFO       Metadata matched 308 samples, 0 inferred from gel/experiment, 0 still unmatched (using experiment-number proxy)
+21:11:43  INFO       Cell lines in data: ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+21:11:43  INFO       Samples: 237 drug-treated, 71 control
+  Unique donors (proxy): 4 -- ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+  Unique drugs: 22 -- ['Afatinib', 'Axitinib', 'Bosutinib', 'Cabozantinib', 'Dabrafenib', 'Dasatinib', 'Erlotinib', 'Gefitinib', 'Imatinib', 'Lapatinib', 'Nilotinib', 'Pazopanib', 'Ponatinib', 'Regorafenib', 'Ruxolitinib', 'Sorafenib', 'Sunitinib', 'Tofacitinib', 'Trametinib', 'Trastuzumab', 'Vandetanib', 'Vemurafenib']
+21:11:43  INFO       Held-out drugs found: 21/21 -- missing: none
+21:11:43  INFO       Training drugs found: 1/1 -- {'Trastuzumab'}
+21:11:44  INFO       PXD014791: 308 samples x 6214 proteins (44.2% non-NaN)
+21:11:44  INFO       Total pairs: 60 (59 held-out, 1 training)
+21:11:44  INFO       PXD014791: 59 held-out pairs (paper reports 58)
+21:11:44  INFO     
+============================================================
+21:11:44  INFO     Dataset: PXD014791  |  59 held-out pairs
+21:11:44  INFO     ============================================================
+21:11:46  INFO       Processed 10/59 pairs ...
+21:11:47  INFO       Processed 20/59 pairs ...
+21:11:48  INFO       Processed 30/59 pairs ...
+21:11:49  INFO       Processed 40/59 pairs ...
+21:11:50  INFO       Processed 50/59 pairs ...
+21:11:51  INFO       Saved per-pair results: results/pxd014791_per_pair.csv
+21:11:51  INFO     
+=== Summary (mean Pearson across held-out pairs) ===
+21:11:51  INFO     
+                            pearson_full              pearson_top100              spearman_full              spearman_top100             
+                                    mean    std count           mean    std count          mean    std count            mean    std count
+dataset   baseline                                                                                                                       
+PXD014791 HVG                      0.337  0.081    59          0.557  0.090    59         0.378  0.117    59           0.519  0.098    59
+          PCA                      0.174  0.086    59          0.374  0.142    59         0.157  0.131    59           0.368  0.125    59
+          additive-linear          0.281  0.131    59          0.462  0.165    59         0.248  0.160    59           0.415  0.173    59
+          control-mean               NaN    NaN     0            NaN    NaN     0           NaN    NaN     0             NaN    NaN     0
+          perturbation-mean        0.225  0.090    59          0.469  0.144    59         0.190  0.111    59           0.457  0.128    59
+21:11:52  INFO     
+Figure saved: results/phase0_figure3.png
+21:11:52  INFO     
+=== Phase 0 complete ===
+10:25:41  INFO     === Step 1: Skipping download (--skip-download) ===
+10:25:41  INFO     
+=== Step 2a: Load PXD014791 (LFQ) ===
+10:25:51  INFO     Loading data/PXD014791/proteinGroups.txt ...
+10:26:01  INFO       Raw: 7193 protein groups, 3466 columns
+10:26:01  INFO       After MQ filters: 6413 protein groups
+10:26:01  INFO       Found 381 LFQ intensity columns
+10:26:02  INFO       Parsed: 308 samples kept, 59 HeLa skipped, 14 no-drug-match skipped
+10:26:02  INFO       Applying Metadata-Table.xlsx ...
+10:26:02  INFO       Metadata matched 308 samples, 0 inferred from gel/experiment, 0 still unmatched (using experiment-number proxy)
+10:26:02  INFO       Cell lines in data: ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+10:26:02  INFO       Samples: 237 drug-treated, 71 control
+  Unique donors (proxy): 4 -- ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
+  Unique drugs: 22 -- ['Afatinib', 'Axitinib', 'Bosutinib', 'Cabozantinib', 'Dabrafenib', 'Dasatinib', 'Erlotinib', 'Gefitinib', 'Imatinib', 'Lapatinib', 'Nilotinib', 'Pazopanib', 'Ponatinib', 'Regorafenib', 'Ruxolitinib', 'Sorafenib', 'Sunitinib', 'Tofacitinib', 'Trametinib', 'Trastuzumab', 'Vandetanib', 'Vemurafenib']
+10:26:02  INFO       Held-out drugs found: 21/21 -- missing: none
+10:26:02  INFO       Training drugs found: 1/1 -- {'Trastuzumab'}
+10:26:03  INFO       PXD014791: 308 samples x 6214 proteins (44.2% non-NaN)
+10:26:03  INFO       Total pairs: 60 (59 held-out, 1 training)
+10:26:03  INFO       PXD014791: 59 held-out pairs (paper reports 58)
+10:26:03  INFO     
+============================================================
+10:26:03  INFO     Dataset: PXD014791  |  59 held-out pairs
+10:26:03  INFO     ============================================================
+10:26:05  INFO       Processed 10/59 pairs ...
+10:26:06  INFO       Processed 20/59 pairs ...
+10:26:07  INFO       Processed 30/59 pairs ...
+10:26:08  INFO       Processed 40/59 pairs ...
+10:26:08  INFO       Processed 50/59 pairs ...
+10:26:09  INFO       Saved per-pair results: results/pxd014791_per_pair.csv
+10:26:09  INFO     
+=== Summary (mean Pearson across held-out pairs) ===
+10:26:09  INFO     
+                            pearson_full              pearson_top100              spearman_full              spearman_top100             
+                                    mean    std count           mean    std count          mean    std count            mean    std count
+dataset   baseline                                                                                                                       
+PXD014791 HVG                      0.337  0.081    59          0.557  0.090    59         0.378  0.117    59           0.519  0.098    59
+          PCA                      0.174  0.086    59          0.374  0.142    59         0.157  0.131    59           0.368  0.125    59
+          additive-linear          0.281  0.131    59          0.462  0.165    59         0.248  0.160    59           0.415  0.173    59
+          control-mean               NaN    NaN     0            NaN    NaN     0           NaN    NaN     0             NaN    NaN     0
+          perturbation-mean        0.225  0.090    59          0.469  0.144    59         0.190  0.111    59           0.457  0.128    59
+10:26:10  INFO     
+Figure saved: results/phase0_figure3.png
+10:26:10  INFO     
+=== Phase 0 complete ===
