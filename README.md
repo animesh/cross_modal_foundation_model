@@ -1,291 +1,253 @@
 # Single-cell foundation models benefit from cross-modal training: adding proteomics data beats parameter scaling
 
-> Burq et al. (2026) "Single-cell foundation models benefit from cross-modal training:
-> adding proteomics data beats parameter scaling." bioRxiv 2026.08.14.744845
+Independent baseline checks for Burq et al. (2026), *Single-cell foundation models benefit from cross-modal training: adding proteomics data beats parameter scaling*. [bioRxiv preprint](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full), DOI: **10.64898/2026.08.14.744845**.
 
-Great [paper](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full) to stress-test. Specially the tag-line with those em-dashes -- 
+The aim is to stress-test what is actually reproducible, starting with classical baselines before evaluating foundation-model claims. The results below distinguish observed data, implementation choices, and unresolved author-protocol details.
 
-"Here we introduce a modality on which such models have not previously been trained. Proteins -- not transcripts -- are the key molecular level at which biological functions begin to manifest."
+## Current status
 
-Jokes apart, here trying to structure the pipeline around what's actually testable.
+| Stage | Completed | Remaining |
+| --- | --- | --- |
+| Phase 0: protein perturbation | PXD014791 input audit; 156-configuration classical-baseline sweep; local Windows rerun and output verification | Exact author preprocessing and held-out manifest; ProTargetMiner; model embeddings |
+| Phase 1: Figure 2 baselines | Five-fold PCA/logistic DepMap diagnostic; local execution and independent output verification | Upstream random-forest protocol; actual MSigDB pathway benchmark; tissue separation |
+| Phase 2: foundation models | Not evaluated | Original versus proteomics-trained checkpoints under identical evaluation conditions |
 
----
+**This is not yet a complete reproduction of Figures 2 or 3.** Numerical proximity to a figure does not establish identical processing or validate the paper's model-training claims.
 
-## What the recon revealed
+## Questions worth testing
 
-**Model weights (Trove1-70m)**: The [HuggingFace](https://huggingface.co/Tesorai/Trove1-70m) page exists but the README is completely empty -- no usage instructions, no architecture spec, no tokenizer info. The tesorai GitHub org has only `tesorai_search` as a public repo; `cross_modal_foundation_model` was empty at the time of writing. Fresh preprint (Aug 19, 2026), code release likely lags. Can't reproduce model-embedding steps yet. Independently verifying testable claims instead.
+### Continued pretraining versus parameter scaling
 
----
+The paper compares a proteomics-continued-pretrained 70M model with larger RNA-only checkpoints. This tests the benefit of adding proteomics relative to those existing checkpoints, not a controlled comparison in which every model size receives identical continued pretraining. Continuing the larger models on the same corpus would address a different, complementary question.
 
-## Assumptions worth flagging
+### Protein-to-gene mapping
 
-**A1 -- The comparison is unfair by design.**
-The 70M model gets continued pretraining; the 1B and 3B don't. The headline claim "70M beats 3B" is really "fine-tuned 70M beats frozen 3B." A proper ablation would CPT the 1B on the same proteomics corpus. This is never done.
+The paper maps proteins to gene tokens. Our current Phase 0 parser takes the first listed gene name and keeps the first protein-group row per gene. This is an explicit reconstruction choice, not verified equivalence to the authors' mapping. Mapping coverage and handling of isoforms, ambiguous identifiers, and duplicate genes remain relevant audit questions.
 
-**A2 -- Token mapping is lossy in one direction.**
-Proteins are mapped to Tahoe's gene token vocabulary. Multiple isoforms likely collapse to one token. Proteins with no Ensembl gene mapping are silently dropped. The paper doesn't report what fraction of each proteomics dataset survives this mapping -- a real blind spot for a proteomics dataset where isoform-level quantification matters.
+### Classical baselines versus model improvements
 
-**A3 -- The scaling curve hasn't saturated.**
-Figure 4 is still rising at 48,843 samples. They're reporting a ceiling that isn't a ceiling.
+Improvement over an original checkpoint is distinct from superiority over HVG or PCA. Both comparisons must be reported. Approximate Figure 3 values recorded in the original code are useful orientation, but are not author-provided numerical outputs.
 
-**A4 -- Figure 3 baseline pattern: HVG/PCA beat all models, perturbation-mean/additive-linear fail on ProTargetMiner. (CORRECTED)**
-Initial read of Figure 3 was wrong -- the -0.652/-0.650 delta labels belong to perturbation-mean and additive-linear (absolute ~0.09), not HVG/PCA. HVG and PCA are the tall rightmost grey bars at +0.156/+0.160 delta (absolute ~0.90). The actual anomaly: HVG and PCA outperform ALL models including the CPT model on both datasets (PXD014791: CPT=0.612 vs HVG=0.665; ProTargetMiner: CPT=0.813 vs HVG=0.902). This is never discussed in the paper text -- only visible in Figure 3.
+### Preprocessing and missing values
 
-**A5 -- TMT ratio conversion assumption.**
-They use "absolute isotope-corrected reporter intensities" from MaxQuant rather than ratio columns. Reasonable for within-plex comparisons, but introduces scale assumptions that may not generalise across the heterogeneous TMT batches in their corpus.
+The initial conclusion that HVG/PCA required proprietary reprocessing was unsupported. The current experiments show that changing missing-value treatment and aggregation can recover close numerical agreement from the supplied public MaxQuant data. This does not prove the authors used our reconstruction choices.
 
-**A6 -- HVG/PCA baseline reproducibility requires Tesorai's internal data.**
-The paper used Tesorai Search to reprocess PXD014791 (MaxQuant 1.6.0.13 from 2016 = outdated). The public PRIDE deposit has MaxQuant output only. Our non-embedding baselines (perturbation-mean, additive-linear) reproduce within 1-4%, validating data loading. HVG/PCA are 8x lower (0.10 vs 0.665) -- the gap is in the data, not the algorithm. The paper presents HVG/PCA as reproducible "classical references" without disclosing this dependency on their proprietary reprocessing.
+### TMT and data scale
 
----
+The paper describes using absolute isotope-corrected reporter intensities for ProTargetMiner rather than ratio columns. That branch has not been evaluated here. Likewise, this project has not tested the paper's training-data scaling claims or established whether its learning curve saturates.
 
-## Testing, in order of tractability
+# Phase 0: PXD014791 baseline verification
 
-```
-Phase 0 (no model) -- Baseline verification on protein perturbation benchmark
-  -> Download PXD014791 from PRIDE via FTP Range requests (Search.zip, 22 GB)
-  -> Implement leave-one-pair-out kNN predictor
-  -> Verify all 5 baselines match Figure 3 numbers
+## Data and input audit
 
-Phase 1 (no model) -- PCA baseline on gene essentiality / tissue separation
-  -> DepMap public portal
-  -> MSigDB Hallmark gene sets
-  -> Verify PCA baseline bars in Figure 2
+Local inputs:
 
-Phase 2 (model) -- Once the HuggingFace weights are usable
-  -> Embed proteomes with Trove1-70m
-  -> Run kNN on the same benchmark
-  -> Check if +0.070 / +0.067 improvements reproduce
+```text
+D:\data\phase0\data\PXD014791\proteinGroups.txt
+D:\data\phase0\data\PXD014791\Metadata-Table.xlsx
 ```
 
-Phase 0 is the highest-value target -- it checks whether the benchmark is methodologically sound, independent of any model claim.
+Direct input inspection established:
 
----
+- 7,193 protein-group rows and 3,466 columns in the original table.
+- 381 LFQ sample columns: 308 metadata-matched formal samples, 64 HeLa QC samples, and nine unmatched non-QC samples.
+- 237 treated samples, 71 controls, four biological contexts, and 60 drug-context pairs among the formal samples.
+- 6,413 protein groups after the MaxQuant site-only, reverse, and potential-contaminant filters, before gene selection/deduplication.
 
-# Phase 0 -- Baseline verification
+The current sweep uses only the 308 metadata-matched samples. It does not infer donor or drug metadata for auxiliary samples.
 
-Reproduces the **5 baselines** in Figure 3 of the paper using the public PRIDE deposit.
+## Drug mapping and pair selection
 
-## Setup
+The source study explicitly identifies **`TRA = Trametinib`**. The earlier README's assignment of `TRA` to Trastuzumab was incorrect. `TRA` contributes one formal pair in PMC-B, with four samples.
 
-```bash
-pip install pipenv
-cd phase0/
-pipenv install
+**`TRS` remains unresolved.** It contributes two formal pairs, in PMC-B and PMC-E, with eight samples. The current runner retains drug codes and does not assign `TRS` a drug identity by elimination.
+
+Two scoring scenarios are reported:
+
+- **All 60 pairs.**
+- **Provisional 58 pairs:** exclude `TRS` pairs from scoring only. They remain eligible neighbours for other queries.
+
+The provisional exclusion matches the reported pair count but is not a verified author manifest. Trametinib is present in the formal metadata; the previous claim that it was absent is superseded.
+
+## Current implementation
+
+From the repository's `phase0` directory:
+
+```bat
+python test_pxd_methods.py
 ```
 
-## Run
+Dependencies: NumPy, pandas, SciPy, scikit-learn, openpyxl, and threadpoolctl. The metadata workbook requires openpyxl. No GPU, model checkpoint, or new download is needed for this sweep.
 
-```bash
-# Full pipeline (download + benchmark)
-pipenv run python run_phase0.py
+`test_pxd_methods.py` is the implementation used for the current results. The older `run_phase0.py`, `benchmark.py`, `parse_lfq.py`, and normalization/debug scripts are retained as legacy code and are not equivalent to the current sweep. Their output must not be substituted for the results below.
 
-# Skip download if data already present
-pipenv run python run_phase0.py --skip-download
+### Response and prediction
 
-# One dataset only
-pipenv run python run_phase0.py --dataset pxd   # PXD014791 LFQ
-pipenv run python run_phase0.py --dataset ptm   # ProTargetMiner TMT
+For each treated drug-context pair, aggregate treated log-abundances and controls from the same biological context. Given measured log-proteome `r`, predicted log-proteome `p`, and matched control `c`:
+
+```text
+Measured response:  delta     = r - c
+Predicted response: delta_hat = p - c
 ```
 
-Check
+HVG/PCA predictions use a cosine-similarity-weighted average of the five nearest other pairs' log-proteomes. Individual sample embeddings are averaged within each pair for sample-level variants. The query's measured treated profile is used to construct its embedding; this is not prospective prediction from drug identity and untreated controls alone.
 
-```
-pipenv run python run_phase0.py --skip-download --dataset pxd
-10:25:41  INFO     === Step 1: Skipping download (--skip-download) ===
-10:25:41  INFO     
-=== Step 2a: Load PXD014791 (LFQ) ===
-10:25:51  INFO     Loading data/PXD014791/proteinGroups.txt ...
-10:26:01  INFO       Raw: 7193 protein groups, 3466 columns
-10:26:01  INFO       After MQ filters: 6413 protein groups
-10:26:01  INFO       Found 381 LFQ intensity columns
-10:26:02  INFO       Parsed: 308 samples kept, 59 HeLa skipped, 14 no-drug-match skipped
-10:26:02  INFO       Applying Metadata-Table.xlsx ...
-10:26:02  INFO       Metadata matched 308 samples, 0 inferred from gel/experiment, 0 still unmatched (using experiment-number proxy)
-10:26:02  INFO       Cell lines in data: ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
-10:26:02  INFO       Samples: 237 drug-treated, 71 control
-  Unique donors (proxy): 4 -- ['PMC-A', 'PMC-B', 'PMC-D', 'PMC-E']
-  Unique drugs: 22 -- ['Afatinib', 'Axitinib', 'Bosutinib', 'Cabozantinib', 'Dabrafenib', 'Dasatinib', 'Erlotinib', 'Gefitinib', 'Imatinib', 'Lapatinib', 'Nilotinib', 'Pazopanib', 'Ponatinib', 'Regorafenib', 'Ruxolitinib', 'Sorafenib', 'Sunitinib', 'Tofacitinib', 'Trametinib', 'Trastuzumab', 'Vandetanib', 'Vemurafenib']
-10:26:02  INFO       Held-out drugs found: 21/21 -- missing: none
-10:26:02  INFO       Training drugs found: 1/1 -- {'Trastuzumab'}
-10:26:03  INFO       PXD014791: 308 samples x 6214 proteins (44.2% non-NaN)
-10:26:03  INFO       Total pairs: 60 (59 held-out, 1 training)
-10:26:03  INFO       PXD014791: 59 held-out pairs (paper reports 58)
-10:26:03  INFO     
-============================================================
-10:26:03  INFO     Dataset: PXD014791  |  59 held-out pairs
-10:26:03  INFO     ============================================================
-10:26:05  INFO       Processed 10/59 pairs ...
-10:26:06  INFO       Processed 20/59 pairs ...
-10:26:07  INFO       Processed 30/59 pairs ...
-10:26:08  INFO       Processed 40/59 pairs ...
-10:26:08  INFO       Processed 50/59 pairs ...
-10:26:09  INFO       Saved per-pair results: results/pxd014791_per_pair.csv
-10:26:09  INFO     
-=== Summary (mean Pearson across held-out pairs) ===
-10:26:09  INFO     
-                            pearson_full              pearson_top100              spearman_full              spearman_top100             
-                                    mean    std count           mean    std count          mean    std count            mean    std count
-dataset   baseline                                                                                                                       
-PXD014791 HVG                      0.337  0.081    59          0.557  0.090    59         0.378  0.117    59           0.519  0.098    59
-          PCA                      0.174  0.086    59          0.374  0.142    59         0.157  0.131    59           0.368  0.125    59
-          additive-linear          0.281  0.131    59          0.462  0.165    59         0.248  0.160    59           0.415  0.173    59
-          control-mean               NaN    NaN     0            NaN    NaN     0           NaN    NaN     0             NaN    NaN     0
-          perturbation-mean        0.225  0.090    59          0.469  0.144    59         0.190  0.111    59           0.457  0.128    59
-10:26:10  INFO     
-Figure saved: results/phase0_figure3.png
-10:26:10  INFO     
-=== Phase 0 complete ===
-```
+Pearson correlation is calculated across proteins between the two response vectors. Top-100 scoring selects the 100 proteins with the largest absolute measured response. **There is no t-test, p-value, or FDR-based DE selection in this metric.**
 
-## Data acquisition -- PXD014791
+### Method sweep
 
-The PRIDE FTP lists `Search.zip` (22.8 GB) containing `proteinGroups.txt`. The HTTP server doesn't honour Range requests so we use FTP REST (seek) + RETR to extract only the target file (~200 MB download vs 22 GB):
+The runner tests:
 
-```bash
-pipenv run python remote_extract.py PXD014791
+- Mean of detected log-intensities, log of mean detected intensities, and mean of zero-filled `log2(intensity + 1)`.
+- Finite-response intersection scoring and detected-union scoring with missing log values explicitly zero-filled.
+- Raw and sample-median-centred embedding inputs.
+- Unscaled and standardized features.
+- Sample-global, sample-fold, and pair-fold embeddings.
+- HVG/PCA predictors, perturbation-mean, and additive-linear baselines.
+
+Sample-global fitting includes evaluated samples and is transductive. Sample-fold fitting excludes the query's treated samples, while retaining controls and other treated samples. Pair-fold fitting excludes the query pair mean.
+
+PCA is capped by available sample count and numerical rank. Nominal caps are 307 for sample-global fitting, 301–306 for sample-fold fitting, and 58 for pair-fold fitting. **Literal 512-component PCA on 308 samples is not claimed.** A Gram-matrix implementation was checked against SVD training/query inner products.
+
+Selecting HVGs after standardization equalizes variances; these variants are sensitivity diagnostics, not the recommended highest-variance selection protocol. The main comparison uses unscaled features.
+
+## Verified results
+
+Configuration: zero-filled `log2(intensity + 1)`, raw/unscaled sample-fold embeddings, detected-union scoring, and provisional 58-pair scoring. Non-embedding baselines use the same response/scoring conventions.
+
+| Baseline | Local top-100 Pearson | Approximate figure target* | Local full Pearson | Approximate figure target* |
+| --- | ---: | ---: | ---: | ---: |
+| Perturbation-mean | 0.540237 | 0.541 | 0.215501 | 0.219 |
+| Additive-linear | 0.471802 | 0.475 | 0.218536 | 0.229 |
+| HVG | 0.666826 | 0.665 | 0.412999 | 0.415 |
+| PCA | 0.673363 | 0.674 | 0.422155 | 0.425 |
+
+*Targets are approximate values recorded in the original code, not verified author numerical outputs. Control-mean predicts zero response and has undefined Pearson correlation because its prediction has zero variance; it is not a scored configuration in this sweep.
+
+The local Windows run reproduced the four reported rows to floating-point precision. All three output files were read completely and independently checked:
+
+- **156 configurations and 9,360 unique per-pair records.**
+- **312 scenario summaries**, with all means, counts, and PCA component ranges recomputed from per-pair records.
+- All reported correlations finite and within [-1, 1].
+- All unscaled configurations agree with the earlier Linux results within approximately **7e-16**.
+- **72 standardized-HVG scenario summaries** differ by more than 1e-8; the maximum absolute mean-correlation difference is **0.0098334088**. The cause has not been established.
+
+The main comparison is reproduced across environments, but the entire sweep is not numerically identical. Exact author preprocessing and the `TRS` exclusion remain unverified.
+
+Outputs relative to `phase0`:
+
+```text
+results/method_audit/per_pair.csv
+results/method_audit/summary.csv
+results/method_audit/assumptions.json
 ```
 
-Retrieves `data/PXD014791/proteinGroups.txt` in four FTP partial reads.
-Also download the metadata table (21 KB):
+## Exploratory VAE
 
-```bash
-pipenv run python parse_metadata.py
+A NumPy VAE with 512 posterior-mean coordinates was trained for 50 epochs across three seeds on all 308 formal samples, including evaluated samples. The posterior mean follows a 128-unit hidden layer, so 512 coordinates do not imply 512 independent features.
+
+Using the same five-neighbour predictor and provisional 58-pair scoring, mean top-100/full correlations were **0.531447 / 0.267139**, below the classical PCA comparison. This was an exploratory transductive trial, not held-out model validation or a test of continued pretraining.
+
+## ProTargetMiner
+
+The ProTargetMiner branch has not been run or validated. Its reporter-channel mapping and absolute-intensity processing must be checked against the source experimental design before evaluation. Legacy acquisition and TMT parsing utilities are not evidence that this branch is ready.
+
+# Phase 1: DepMap PCA/logistic diagnostic
+
+## Data and preflight
+
+Benchmark root:
+
+```text
+D:\data\phase1\benchmarks
 ```
 
-### ProTargetMiner (TMT)
+Inputs used by the checker and current diagnostic:
 
-Three PRIDE deposits: PXD009775, PXD009644, PXD013134.
-Requires manual TMT channel map from Saei et al. 2019 Nature Comms Supplementary Table 2.
-Fill in `parse_tmt.py -> HARDCODED_CHANNEL_MAP` before running.
-
-## Diagnostic scripts
-
-| Script | Purpose |
-|---|---|
-| `diagnose.py` | Network reachability check -- run first if download fails |
-| `explore_ftp.py PXD014791` | List FTP directory contents |
-| `remote_extract.py PXD014791` | Extract proteinGroups.txt from Search.zip via FTP REST |
-| `parse_metadata.py` | Download + display Metadata-Table.xlsx |
-| `debug_metadata.py` | Show which LFQ columns don't match the metadata |
-| `find_missing_pair.py` | Cross metadata vs parsed data to find missing pairs |
-
-## Results -- PXD014791
-
-### What we found vs paper (Figure 3)
-
-| Baseline | Ours top-100 | Paper top-100 | Ours full | Paper full |
-|---|---|---|---|---|
-| control-mean | NaN (undefined) | NaN (undefined) | NaN | NaN |
-| perturbation-mean | 0.517 | ~0.541 | 0.279 | ~0.219 |
-| additive-linear | 0.468 | ~0.475 | 0.311 | ~0.229 |
-| HVG | 0.102 | ~0.665 | 0.081 | ~0.415 |
-| PCA | 0.111 | ~0.674 | 0.088 | ~0.425 |
-
-Held-out pairs: **57** (paper: 58).
-
-### Interpretation
-
-**Non-embedding baselines reproduce within 1-4%** -- this validates data loading, log2 transform, LFC computation, and pair structure. The delta computation is correct.
-
-**HVG/PCA are 8x lower than paper** -- not an implementation issue. Our non-embedding baselines match; only the embedding-based ones fail. The gap is in the underlying protein quantification data: the paper used Tesorai Search reprocessing of the raw spectra; we use the public MaxQuant 1.6.0.13 output. Without running Tesorai Search (a commercial product) on the ~94 GB of raw files, the HVG/PCA numbers cannot be reproduced from this PRIDE deposit.
-
-This is a reproducibility gap: the paper presents HVG/PCA as standard classical references but their values depend on proprietary reprocessing that is not documented or publicly available.
-
-### The missing 58th pair
-
-Running `find_missing_pair.py` revealed:
-
-- The Metadata-Table.xlsx itself has only **57 held-out pairs** -- not 58.
-- **Trametinib is Drug Treatment code "TRS" in the metadata** -- confirmed by elimination (22 Drug Treatment codes in the metadata; 21 map to known drugs + TRA=Trastuzumab; TRS is the only code unaccounted for, and Trametinib is the only held-out drug without an obvious code).
-- **"TRS" was previously mislabelled as Trastuzumab** in the initial DRUG_MAP. Correcting TRS->Trametinib and USN->Vandetanib (metadata confirms `031616_Gel1_USN_Tube_12` has Drug Treatment=VAN) brings the pair count to **59 held-out pairs vs paper's 58**.
-- The remaining 1-pair gap is likely one Trametinib/cell line excluded by quality filtering in the paper's Tesorai pipeline.
-- 5 drugs (Cabozantinib, Dabrafenib, Dasatinib, Ponatinib, Vemurafenib) were tested in only PMC-B, not all 4 cell lines.
-- **Trastuzumab (TRA) is PMC-B only** -- 4 samples, 1 training pair. The apparent "3 training pairs" in earlier runs was an artefact of the wrong TRS mapping.
-
-Full Drug Treatment code -> canonical name mapping (22 codes, confirmed from metadata):
-| Code | Drug | Notes |
-|------|------|-------|
-| AFA | Afatinib | |
-| AXI | Axitinib | |
-| BOS | Bosutinib | |
-| CAB | Cabozantinib | PMC-B only |
-| CTRL | Control/DMSO | |
-| DAB | Dabrafenib | PMC-B only |
-| DAS | Dasatinib | PMC-B only |
-| ERL | Erlotinib | |
-| GEF | Gefitinib | |
-| IMA | Imatinib | PMC-E only |
-| LAP | Lapatinib | PMC-B, PMC-E only |
-| NIL | Nilotinib | |
-| PAZ | Pazopanib | |
-| PON | Ponatinib | PMC-B only |
-| REG | Regorafenib | |
-| RUX | Ruxolitinib | |
-| SOR | Sorafenib | |
-| SUN | Sunitinib | |
-| TOF | Tofacitinib | |
-| TRA | Trastuzumab | **training drug**, PMC-B only |
-| TRS | Trametinib | **held-out**, PMC-B + PMC-E; confirmed by elimination |
-| USN | Vandetanib | alternative abbreviation; metadata confirms Drug Treatment=VAN |
-| VAN | Vandetanib | |
-| VEM | Vemurafenib | PMC-B only |
-
-Note: `PRE` appears in proteinGroups.txt but is **absent from the metadata**. Not one of the 22 drugs. Likely a pilot/batch label. These 4 samples (informal runs) don't contribute to the benchmark.
-
-
-
-### Drug × cell line coverage matrix (public data)
-
-```
-cell_line     PMC-A  PMC-B  PMC-D  PMC-E
-Afatinib          4      4      4      5
-Axitinib          4      4      4      5
-Bosutinib         4      4      4      5
-Cabozantinib      0      4      0      0
-Dabrafenib        0      4      0      0
-Dasatinib         0      4      0      0
-Erlotinib         2      4      4      2
-Gefitinib         0      4      4      5
-Imatinib          0      0      0      3
-Lapatinib         0      1      0      3
-Nilotinib         4      4      4      5
-Pazopanib         4      4      4      5
-Ponatinib         0      4      0      0
-Regorafenib       4      4      4      5
-Ruxolitinib       4      4      4      5
-Sorafenib         3      3      0      4
-Sunitinib         3      4      4      6
-Tofacitinib       0      4      4      4
-Vandetanib        4      3      4      5
-Vemurafenib       0      3      0      0
-Trametinib        0      0      0      0   <- absent from public metadata
+```text
+depmap/raw/ccle-counts.gct
+depmap/raw/depmap-gene-dependencies.csv
+depmap/raw/depmap-metadata.csv
+depmap/misc/split-cls.csv
+depmap/misc/split-genes-lt5gt70.csv
+msigdb/sigs/genesets.v2023.2.Hs_hallmark.gmt
 ```
 
-## Known assumptions and limitations
+`gene-mapping.csv` is also available. The expression file is plain TSV with `Name` and `Description`, despite the `.gct` suffix. The parser also supports GCT #1.2.
 
-1. **Pool definition**: The kNN pool for each held-out pair = all other pairs (LOOCV). The paper's phrasing ("nearest training pairs") is ambiguous but with only 2 Trastuzumab training pairs a fixed-training-pool interpretation would be degenerate (k=5 with n=2 neighbours). LOOCV is the only interpretation that makes k=5 viable.
+From `phase1`:
 
-2. **HVG/PCA imputation**: Missing proteins treated as absent (pairwise-complete cosine for HVG; column-mean imputation on >=50% detected proteins for PCA). The paper doesn't specify strategy. See A6 -- the gap is the data, not this choice.
+```bat
+python check_phase1_data.py
+python run_phase1.py --eval
+```
 
-3. **Metadata inference for 9 pilot samples**: 9 LFQ samples (Trametinib, Estaurosporine, one Erlotinib) are in proteinGroups.txt but absent from Metadata-Table.xlsx. Their cell line is inferred from other samples in the same gel run via `_gel_exp_key()`. These don't add new held-out pairs since Trametinib has no matched controls in the public data.
+The preflight produces `results/phase1_preflight/report.json` and `sample_mapping.csv`; the evaluator consumes the mapping.
 
-4. **ProTargetMiner**: Not yet run -- requires manual TMT channel mapping from Saei 2019 Supplementary Table 2.
+Verified local input properties:
 
-## Key findings for a paper critique
+- 56,202 expression rows and 1,019 sample columns.
+- 661 unique one-to-one expression-to-DepMap mappings, covering all five sample folds.
+- 14,285 split genes present in both expression descriptions and dependency columns.
+- Dependency probabilities range from 0 to 1; 739,493 nonfinite labels are excluded from labelled evaluation.
+- 50 Hallmark sets; 4,244 Hallmark genes overlap expression descriptions.
 
-1. **The 70M vs 1B/3B comparison is fine-tuned vs frozen** -- not a fair parameter scaling comparison (A1).
+## Corrected diagnostic
 
-2. **HVG and PCA outperform all models on both datasets** -- visible in Figure 3, never discussed in text. CPT model gets 0.612/0.813 while HVG/PCA get 0.665/0.902 (PXD014791/ProTargetMiner). The paper's framing as "model improves over baselines" needs qualification.
+The current implementation:
 
-3. **HVG/PCA baseline values are not reproducible from public data** -- require Tesorai's proprietary search reprocessing (A6).
+- Preserves every expression row and maps samples explicitly to DepMap IDs.
+- Uses expression gene descriptions and strips numeric suffixes from dependency gene columns.
+- Sums 1,931 duplicate gene-symbol rows at count level, yielding 54,271 features. This is a local aggregation choice, not verified upstream equivalence.
+- Fits standardized-count PCA with 512 components on each fold's training cell lines and uses gene loadings as features.
+- Trains the original logistic classifier on training genes, using mean dependency probability over training cell lines and a positive label of **`> 0.5`**.
+- Evaluates held-out genes in validation cell lines. Missing labels are excluded, not assigned a negative class.
+- Postpones type-annotation evaluation to avoid the observed older-Python import error.
 
-4. **n=58 held-out pairs cannot be reproduced** -- public metadata has 57; Trametinib is absent (A6).
+## Verified local results
 
-5. **Scaling curve hasn't saturated** -- Figure 4 still rising at the full corpus (A3).
+| Fold | Validation cell lines | Mean AUPRC |
+| --- | ---: | ---: |
+| 0 | 133 | 0.6259 |
+| 1 | 132 | 0.6673 |
+| 2 | 132 | 0.6386 |
+| 3 | 132 | 0.6460 |
+| 4 | 132 | 0.6495 |
 
+Mean of fold means: **0.6454576962**. Sample SD across five fold means: **0.0152016393**. This SD is not variability across training seeds.
 
-are we sure that we got the mapping right finally? check [supplemetary](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full#sec-14) of their article first meanwhile looks like batch effect normalization with median leads us quite close `pipenv run python test_normalisation.py`
+All seven returned CSVs were read, and fold means, overall mean/SD, and 661 unique validation cell lines were independently verified. A subsequent local rerun produced the same displayed results.
 
+Outputs under `phase1/results/phase1`:
 
+```text
+depmap_fold0_per_cell.csv
+depmap_fold1_per_cell.csv
+depmap_fold2_per_cell.csv
+depmap_fold3_per_cell.csv
+depmap_fold4_per_cell.csv
+phase1_results.csv
+phase1_summary.csv
+```
 
+**This remains a PCA/logistic diagnostic, not exact Figure 2 reproduction.** The upstream DepMap implementation uses random forests and labelled embedding tables. Matching its classifier alone would not establish matching feature construction, labels, splits, or aggregation.
+
+MSigDB is disabled by default. `--msigdb-proxy` enables a held-out-gene CCLE/logistic Hallmark proxy, not the actual pathway benchmark. The MSigDB and tissue-separation protocols remain to be implemented and verified.
+
+# Next steps
+
+1. Preserve the verified Phase 0 and Phase 1 diagnostics as comparison baselines.
+2. Reproduce the upstream DepMap random-forest protocol without substituting the current logistic diagnostic.
+3. Implement the actual MSigDB and tissue-separation evaluations.
+4. Resolve the Phase 0 author preprocessing and exact held-out manifest.
+5. Evaluate original versus proteomics-trained checkpoints under identical inputs, predictor, and scoring.
+
+No foundation-model checkpoint has been evaluated in this project. Current baseline agreement does not validate or refute the paper's continued-pretraining claims.
+
+## Sources
+
+- [Target preprint](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full), DOI **10.64898/2026.08.14.744845**.
+- [PXD014791 source study](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8776854/), DOI **10.1038/s41597-021-01114-3**; Table 1 identifies `TRA` as Trametinib.
+- [Upstream DepMap random-forest implementation](https://github.com/tahoebio/tahoe-x1/blob/main/scripts/depmap/rf.py).
+
+The earlier README's claims that Trametinib was absent, that the formal data contained only 57 pairs, and that proprietary reprocessing was required are superseded. The verified data contain 60 formal pairs. `TRS` identity and the exact author split remain unresolved.
