@@ -9,8 +9,8 @@ The aim is to stress-test what is actually reproducible, starting with classical
 | Stage | Completed | Remaining |
 | --- | --- | --- |
 | Phase 0: protein perturbation | PXD014791 input audit; 156-configuration classical-baseline sweep; local Windows rerun and output verification | Exact author preprocessing and held-out manifest; ProTargetMiner; model embeddings |
-| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; seven deposited MSigDB embeddings evaluated with independent output audit | Exact target-paper configuration and numerical equivalence; MSigDB PCA baseline and checkpoint provenance; tissue separation |
-| Phase 2: foundation models | Deposited gene embeddings evaluated in the Phase 1 MSigDB task; no checkpoint inference or training performed | Original versus proteomics-trained checkpoint evaluation with verified provenance and identical conditions |
+| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; seven deposited MSigDB embeddings evaluated with independent output audit; tissue separation on 15 deposited cell embeddings with host verification and local displayed-score agreement | Exact target-paper configuration and numerical equivalence; MSigDB PCA baseline; checkpoint provenance; independent audit of local tissue-separation output files |
+| Phase 2: foundation models | Deposited gene and cell embeddings evaluated in Phase 1; no foundation-model checkpoint inference or training performed | Original versus proteomics-trained checkpoint evaluation with verified provenance and identical conditions |
 
 **This is not yet a complete reproduction of Figures 2 or 3.** Numerical proximity to a figure does not establish identical processing or validate the paper's model-training claims.
 
@@ -232,7 +232,7 @@ phase1_summary.csv
 
 **This remains a PCA/logistic diagnostic, not exact Figure 2 reproduction.** The upstream DepMap implementation uses random forests and labelled embedding tables. Matching its classifier alone would not establish matching feature construction, labels, splits, or aggregation.
 
-MSigDB is disabled by default. `--msigdb-proxy` enables a held-out-gene CCLE/logistic Hallmark proxy, not the actual pathway benchmark. The separate MSigDB MLP evaluation below has now been run on deposited embeddings; it does not use this proxy. Tissue separation remains unevaluated.
+MSigDB is disabled by default. `--msigdb-proxy` enables a held-out-gene CCLE/logistic Hallmark proxy, not the actual pathway benchmark. The separate MSigDB MLP evaluation below has now been run on deposited embeddings; it does not use this proxy. The separate tissue-separation evaluation below has now been executed on deposited cell embeddings.
 
 ## Upstream marginal-essentiality PCA/RF reconstruction
 
@@ -423,15 +423,109 @@ results/msigdb_models_smoke/      # diagnostic only; separate from full results
 
 Checkpoint files remain local outputs and were not included in the CSV/JSON audit archive.
 
+# Phase 1: tissue separation of deposited cell embeddings
+
+## Scope and inputs
+
+`run_cell_line_separation.py` evaluates the upstream DepMap tissue-of-origin separation task on **15 deposited cell-embedding files**, including PCA. All files contain the same **661 unique ModelIDs in the same order**, with identical `OncotreeLineage` labels spanning **24 tissues**. This is not the Tabula Sapiens cell-type classification benchmark.
+
+Input directory:
+
+```text
+D:\data\phase1\benchmarks\depmap\cell-embs
+```
+
+The uploaded H5AD matrices and relevant metadata were read directly. Three TranscriptFormer artifacts use numeric observation names rather than CCLE names; their ModelIDs and tissue labels nevertheless match the other artifacts. The runner checks cross-model alignment using ModelIDs and tissue labels, preserves original observation names in per-cell output, and uses ModelIDs for neighbour-edge identifiers.
+
+No foundation-model checkpoint is loaded, no embeddings are regenerated, and no model training is performed. The deposited PCA artifact has **15 dimensions**; it is not the earlier 512-component PCA/logistic diagnostic or a newly reconstructed tissue-separation PCA.
+
+## Metric and implementation
+
+The inspected upstream `compute_lisi_scores` function in `scripts/depmap/evaluate-models.py` computes:
+
+```text
+same_tissue_fraction = fraction of directed neighbour edges sharing OncotreeLineage
+frequency_baseline   = sum over tissues of (tissue sample count / total samples)^2
+tissue_enrichment    = same_tissue_fraction / frequency_baseline
+```
+
+Neighbours are the **20 nearest other cell lines in Euclidean distance**, computed from the original `X` matrix with scikit-learn's `kneighbors_graph` defaults. No feature scaling, log transformation, dimension reduction, or UMAP coordinates are used for scoring. Original matrix dtypes are retained. The common frequency baseline is **0.07043149676943887**.
+
+**Higher scores indicate greater same-tissue neighbour enrichment.** Although upstream calls this score “LISI”, it is not conventional inverse-Simpson LISI and is not silhouette scoring. The denominator uses squared observed tissue frequencies exactly as upstream; it is not a finite-population, self-excluded random-neighbour correction.
+
+This is a descriptive evaluation of deposited embedding geometry on all 661 cell lines, not a held-out classifier or prospective prediction task. No fold or training-seed SD is reported. The metric is sample-weighted, not a macro-average giving every tissue equal weight.
+
+The local runner preserves the upstream score formula but does not compute or write UMAPs back into input H5AD files. It adds metadata, finite-value, neighbour-count, and input-hash checks and exports auditable per-cell and neighbour-edge records. These changes do not alter the scored matrices or tissue labels.
+
+## Executed results
+
+| Deposited embedding identifier | Dimensions | Tissue enrichment |
+| --- | ---: | ---: |
+| `pca` | 15 | 6.708163 |
+| `state` | 2058 | 5.702905 |
+| `tx1-3b-alt` | 2560 | 5.695387 |
+| `uce-33l` | 1280 | 5.610542 |
+| `tx1-3b` | 2560 | 5.374263 |
+| `tx1-70m` | 512 | 5.158390 |
+| `tx1-1b` | 2048 | 5.157316 |
+| `uce-4l` | 1280 | 5.139059 |
+| `transcriptformer-sapiens` | 2048 | 4.786789 |
+| `transcriptformer-exemplar` | 2048 | 4.752421 |
+| `transcriptformer-metazoa` | 2048 | 4.741681 |
+| `nvidia-gf-100m` | 768 | 4.595618 |
+| `geneformer` | 256 | 4.427001 |
+| `scgpt` | 512 | 4.304566 |
+| `nvidia-gf-10m` | 256 | 4.094063 |
+
+**PCA scores highest among these 15 deposited artifacts**, with a same-tissue neighbour fraction of **0.472466** and enrichment **6.708163**. The next scores are `state` at **5.702905** and `tx1-3b-alt` at **5.695387**. These are observed artifact comparisons under this metric, not a general claim that PCA is superior on other tasks.
+
+Embedding filenames are identifiers, not independently verified checkpoint provenance. In particular, `tx1-3b-alt` is not assumed to be the target paper's proteomics-trained checkpoint. These results alone do not establish or refute a continued-pretraining benefit or a controlled parameter-scaling comparison.
+
+## Host checks and local execution
+
+The host runner was executed on all 15 real uploaded H5AD files. Checks confirmed:
+
+- Unique ModelIDs, identical cross-model ModelID order, and identical tissue labels.
+- Finite embedding matrices and the expected sample counts.
+- **20 neighbours per cell**, no self-edges, and no duplicate query-neighbour pairs within a model.
+- All **15 scores** agree with the original upstream function executed on the same matrices and labels within **1e-12**.
+- Output CSVs were read back: **15 summary rows**, **9,915 per-cell records**, **198,300 directed neighbour edges**, and **24 tissue-count rows**. Summary scores were independently recomputed from edge records.
+- Input hashes remained unchanged after execution.
+
+A subsequent local run completed and displayed all **15 scores matching the host results to six decimal places**. This establishes local execution and displayed-score agreement. The newly generated local CSV/JSON files have not been uploaded and independently audited; full-precision cross-environment identity is not claimed.
+
+Exact target-paper configuration, checkpoint identity, original embedding construction, and any overlap between pretraining data and evaluated cell lines remain unresolved. Agreement with the inspected upstream scoring function does not establish exact Figure 2 reproduction.
+
+From `phase1`:
+
+```bat
+python run_cell_line_separation.py
+```
+
+Dependencies: NumPy, pandas, h5py, and scikit-learn. No GPU, PyTorch, Scanpy, UMAP, or new download is required. The runner reads the existing H5AD inputs without modifying them.
+
+Outputs relative to `phase1`:
+
+```text
+results/cell_line_separation/
+  summary.csv
+  per_cell.csv
+  neighbors.csv
+  tissue_counts.csv
+  assumptions.json
+```
+
+`assumptions.json` records the metric, scope, host/runtime versions available to the runner, and input SHA-256 hashes. Existing Phase 0, DepMap, and MSigDB implementations and outputs remain unchanged.
+
 # Next steps
 
 1. Preserve the verified Phase 0 and Phase 1 diagnostics as comparison baselines.
 2. Preserve the upstream marginal PCA/RF reconstruction and resolve its remaining feature discrepancy and exact target-paper configuration.
-3. Preserve the audited MSigDB embedding evaluation; resolve the missing PCA construction and checkpoint provenance, then implement tissue separation.
+3. Preserve the audited MSigDB and tissue-separation evaluations; resolve the missing MSigDB PCA construction and checkpoint provenance, and independently audit the local tissue-separation output files.
 4. Resolve the Phase 0 author preprocessing and exact held-out manifest.
 5. Evaluate original versus proteomics-trained checkpoints under identical inputs, predictor, and scoring.
 
-No foundation-model checkpoint has been loaded for inference or trained in this project. Deposited gene embeddings have been evaluated through the MSigDB MLP task. Current results do not validate or refute the paper's continued-pretraining claims.
+No foundation-model checkpoint has been loaded for inference or trained in this project. Deposited gene embeddings have been evaluated through the MSigDB MLP task, and deposited cell embeddings through the tissue-separation task. Current results do not validate or refute the paper's continued-pretraining claims.
 
 ## Sources
 
