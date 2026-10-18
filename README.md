@@ -9,7 +9,7 @@ The aim is to stress-test what is actually reproducible, starting with classical
 | Stage | Completed | Remaining |
 | --- | --- | --- |
 | Phase 0: protein perturbation | PXD014791 input audit; 156-configuration classical-baseline sweep; local Windows rerun and output verification | Exact author preprocessing and held-out manifest; ProTargetMiner; model embeddings |
-| Phase 1: Figure 2 baselines | Five-fold PCA/logistic DepMap diagnostic; local execution and independent output verification | Upstream random-forest protocol; actual MSigDB pathway benchmark; tissue separation |
+| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; local execution and independent result verification | Exact target-paper configuration and numerical equivalence; actual MSigDB pathway benchmark; tissue separation |
 | Phase 2: foundation models | Not evaluated | Original versus proteomics-trained checkpoints under identical evaluation conditions |
 
 **This is not yet a complete reproduction of Figures 2 or 3.** Numerical proximity to a figure does not establish identical processing or validate the paper's model-training claims.
@@ -152,7 +152,7 @@ Using the same five-neighbour predictor and provisional 58-pair scoring, mean to
 
 The ProTargetMiner branch has not been run or validated. Its reporter-channel mapping and absolute-intensity processing must be checked against the source experimental design before evaluation. Legacy acquisition and TMT parsing utilities are not evidence that this branch is ready.
 
-# Phase 1: DepMap PCA/logistic diagnostic
+# Phase 1: DepMap diagnostics and upstream PCA/RF reconstruction
 
 ## Data and preflight
 
@@ -234,10 +234,94 @@ phase1_summary.csv
 
 MSigDB is disabled by default. `--msigdb-proxy` enables a held-out-gene CCLE/logistic Hallmark proxy, not the actual pathway benchmark. The MSigDB and tissue-separation protocols remain to be implemented and verified.
 
+## Upstream marginal-essentiality PCA/RF reconstruction
+
+The original 512-component PCA/logistic diagnostic above remains unchanged. The upstream marginal-essentiality task is a different evaluation: classify broadly essential versus inessential **genes**, using 15-component PCA loadings and five gene folds. Its AUPRC is not a mean of per-cell-line AUPRC values.
+
+### Deposited-artifact evaluation
+
+`run_depmap_upstream.py` reads `gene-embs/pcloading-lt5gt70-bin.h5ad`, the existing gene splits, and the deposited random-forest predictions under `gene-embs/results`. It verifies artifact labels against the raw dependency matrix and retrains the random forest using seed 42.
+
+The upstream label convention differs from the earlier diagnostic:
+
+1. Fill missing dependency probabilities with zero.
+2. Discretize each cell-line probability: `> 0.5` is dependent.
+3. Average those binary labels across all dependency rows.
+4. Label a gene broadly essential when its dependent fraction is `>= 0.5`.
+
+The supplied gene split selects the upstream broad-essentiality extremes. Existing splits are retained rather than regenerated. The local random forest uses scikit-learn defaults, eight jobs, and `random_state=42`; the upstream constructor does not specify a seed.
+
+### Reconstruction from raw counts
+
+`reconstruct_depmap_pca.py` additionally uses `raw/depmap-gene-effects.csv` and `raw/gene-mapping.csv` to reconstruct the upstream count matrix:
+
+- Retain CCLE samples whose metadata ModelIDs occur in the gene-effect matrix.
+- Retain genes shared by the vocabulary mapping, gene-effect columns, and CCLE descriptions.
+- Strip Ensembl version suffixes and sort Ensembl IDs, preserving separate rows for duplicate gene symbols.
+- Preserve raw float32 counts, without log transformation, library-size normalization, standardization, or gene-symbol summation.
+- Fit 15-component PCA and compute loadings as `components_.T * sqrt(explained_variance_)`.
+- For each marginal gene, select the first matching Ensembl row, following the inspected upstream implementation.
+
+The reconstructed matrix contains **661 samples × 17,186 unique Ensembl features**, with **29 duplicate-symbol rows preserved**. This differs intentionally from the earlier diagnostic's 54,271 summed-symbol features.
+
+The reconstruction uses deterministic **full SVD**. Upstream uses an unseeded automatic PCA solver. This is a documented implementation difference, not an established explanation for every observed numerical discrepancy. Sign alignment is used only to compare loadings, not to modify the RF inputs.
+
+From `phase1`:
+
+```bat
+python run_depmap_upstream.py
+python reconstruct_depmap_pca.py
+```
+
+The reconstruction imports `read_artifact` and `metrics` from the existing `run_depmap_upstream.py`. Both scripts require h5py in addition to NumPy, pandas, SciPy, and scikit-learn. Inputs and the earlier diagnostic outputs are not modified.
+
+### Verified local results
+
+| Source | Mean AUPRC | SD across gene folds | Mean AUROC |
+| --- | ---: | ---: | ---: |
+| Deposited RF predictions | 0.656246 | 0.024077 | 0.937212 |
+| Deposited PCA features, local RF seed 42 | 0.654332 | 0.025978 | 0.935515 |
+| Reconstructed raw-count PCA features, local RF seed 42 | **0.655672** | **0.028509** | **0.935769** |
+
+Each gene is evaluated once: **14,285 unique validation genes**, with **2,857 genes in each of five folds**. Fold SD describes variation across these splits, not across training seeds.
+
+All eight reconstruction output files were read completely. Independent checks confirmed:
+
+- Unique sample names, ModelIDs, and sorted Ensembl IDs.
+- Complete validation-gene coverage and agreement between loading and prediction gene sets.
+- Finite reconstructed loadings and valid probability bounds.
+- All **15 fold AUPRC/AUROC pairs** and all **three summary rows**, recomputed from the uploaded prediction labels and probabilities to floating-point precision.
+- Minimum absolute component correlation in the uploaded feature report: **0.9990495824**.
+
+The local runner reports a sign-aligned relative feature error of **0.0056448808**. Its report was inspected, but that error could not be independently recomputed from the results-only archive because the deposited loadings were absent. Likewise, raw dependency-label reconstruction could not be independently repeated from that archive because the dependency matrix was absent; label checks executed locally are distinct from independent verification of the uploaded metrics.
+
+**Conclusion:** raw-count reconstruction produces close feature and RF agreement, not numerical identity. This validates the implemented upstream marginal-essentiality reconstruction and its output consistency; it does not establish the target paper's exact Figure 2 configuration or reproduce the foundation-model claims. The remaining feature discrepancy has not been fully explained.
+
+Outputs relative to `phase1`:
+
+```text
+results/depmap_upstream/
+  labels.csv
+  metrics.csv
+  predictions.csv
+  summary.csv
+  assumptions.json
+
+results/depmap_raw_pca/
+  count_genes.csv
+  count_samples.csv
+  feature_comparison.csv
+  reconstructed_loadings.csv
+  metrics.csv
+  predictions.csv
+  summary.csv
+  assumptions.json
+```
+
 # Next steps
 
 1. Preserve the verified Phase 0 and Phase 1 diagnostics as comparison baselines.
-2. Reproduce the upstream DepMap random-forest protocol without substituting the current logistic diagnostic.
+2. Preserve the upstream marginal PCA/RF reconstruction and resolve its remaining feature discrepancy and exact target-paper configuration.
 3. Implement the actual MSigDB and tissue-separation evaluations.
 4. Resolve the Phase 0 author preprocessing and exact held-out manifest.
 5. Evaluate original versus proteomics-trained checkpoints under identical inputs, predictor, and scoring.
