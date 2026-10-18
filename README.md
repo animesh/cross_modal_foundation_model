@@ -9,8 +9,8 @@ The aim is to stress-test what is actually reproducible, starting with classical
 | Stage | Completed | Remaining |
 | --- | --- | --- |
 | Phase 0: protein perturbation | PXD014791 input audit; 156-configuration classical-baseline sweep; local Windows rerun and output verification | Exact author preprocessing and held-out manifest; ProTargetMiner; model embeddings |
-| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; local execution and independent result verification | Exact target-paper configuration and numerical equivalence; actual MSigDB pathway benchmark; tissue separation |
-| Phase 2: foundation models | Not evaluated | Original versus proteomics-trained checkpoints under identical evaluation conditions |
+| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; seven deposited MSigDB embeddings evaluated with independent output audit | Exact target-paper configuration and numerical equivalence; MSigDB PCA baseline and checkpoint provenance; tissue separation |
+| Phase 2: foundation models | Deposited gene embeddings evaluated in the Phase 1 MSigDB task; no checkpoint inference or training performed | Original versus proteomics-trained checkpoint evaluation with verified provenance and identical conditions |
 
 **This is not yet a complete reproduction of Figures 2 or 3.** Numerical proximity to a figure does not establish identical processing or validate the paper's model-training claims.
 
@@ -232,7 +232,7 @@ phase1_summary.csv
 
 **This remains a PCA/logistic diagnostic, not exact Figure 2 reproduction.** The upstream DepMap implementation uses random forests and labelled embedding tables. Matching its classifier alone would not establish matching feature construction, labels, splits, or aggregation.
 
-MSigDB is disabled by default. `--msigdb-proxy` enables a held-out-gene CCLE/logistic Hallmark proxy, not the actual pathway benchmark. The MSigDB and tissue-separation protocols remain to be implemented and verified.
+MSigDB is disabled by default. `--msigdb-proxy` enables a held-out-gene CCLE/logistic Hallmark proxy, not the actual pathway benchmark. The separate MSigDB MLP evaluation below has now been run on deposited embeddings; it does not use this proxy. Tissue separation remains unevaluated.
 
 ## Upstream marginal-essentiality PCA/RF reconstruction
 
@@ -318,15 +318,120 @@ results/depmap_raw_pca/
   assumptions.json
 ```
 
+# Phase 1: MSigDB evaluation of deposited gene embeddings
+
+## Scope and inputs
+
+`run_msigdb_models.py` evaluates seven deposited gene embeddings with a multilabel MLP on the common **3,874-gene × 50-Hallmark-pathway** table. This is the upstream-style pathway-membership task, not the earlier CCLE/logistic proxy. No foundation-model checkpoint is loaded, no embeddings are regenerated, and no continued pretraining is performed.
+
+Inputs under `D:\data\phase1\benchmarks\msigdb`:
+
+```text
+gene_embs/embs_adata.h5ad.gz
+sigs/genesets.v2023.2.Hs_hallmark.gmt
+```
+
+The `.h5ad.gz` artifact is readable directly with h5py despite its suffix. The runner preserves its gene and pathway order, checks embedding row alignment, and compares the binary membership matrix with the GMT before training. These checks passed in the local run. The original artifact and GMT were not included in the later results-only audit, so their provenance and membership agreement were not independently rechecked there.
+
+The seven embeddings are evaluated on the same deposited gene universe. Special tokens in the separate full-vocabulary NPZ files are not added to the evaluation. The large source expression dataset is not used by this branch.
+
+**PCA is excluded.** Neither the supplied MSigDB source archive nor the reported repository searches established the MSigDB PCA-generation contract, and no PCA embedding was present in the local inventory. DepMap PCA is not substituted. Embedding filenames are retained as identifiers; their exact correspondence to target-paper checkpoints and training histories remains unverified.
+
+## Evaluation protocol
+
+For each seed **0, 1, and 2**, permute the deposited gene order and partition it into:
+
+| Partition | Genes | Role |
+| --- | ---: | --- |
+| Train | 2,711 | Fit MLP weights |
+| Validation | 194 | Select best epoch, schedule learning rate, and stop training |
+| Test | 194 | Select the MLP configuration by lowest pooled log loss |
+| Benchmark | 775 | Report pooled AUPRC after configuration selection |
+
+These are the upstream **70/5/5/20%** partitions with integer cut points. The partition called `test` is used for hyperparameter selection; it is not the final untouched evaluation set. Benchmark genes are held out from weight fitting and configuration selection. Across seeds, partitions may overlap; the three evaluations are not disjoint folds.
+
+Each embedding/seed evaluates **24 configurations**: hidden sizes 64, 512, 1,024, and 2,048; one or two hidden layers; and dropout 0.0, 0.1, or 0.5. The network uses LeakyReLU hidden activations, sigmoid outputs, binary cross-entropy, Adam with learning rate 0.001, batch size 256, ReduceLROnPlateau patience 7, early-stopping patience 15, and a maximum of 10,000 epochs.
+
+The final metric is average precision over the flattened **775 × 50 gene-pathway probabilities and labels**, not the mean of per-pathway AUPRCs. Summary SD is the sample SD across three seeded runs, combining gene-partition and training-seed variation; it is not an uncertainty interval or variability across training seeds with fixed partitions.
+
+### Implementation differences
+
+The local runner replaces Lightning and multiprocessing with a sequential plain-PyTorch loop. It copies best-validation weights rather than retaining the upstream mutable `state_dict()` reference, explicitly handles CPU/GPU selection, and omits Lightning's sanity-validation pass. These differences are documented in `assumptions.json`; exact upstream numerical equivalence is not claimed.
+
+The full local run completed **7 embeddings × 3 seeds × 24 configurations = 504 fits**. No correction to the completed run was indicated by the output-consistency audit.
+
+## Local runtime
+
+The successful run used a separate uv-managed **Python 3.12.12** environment, **PyTorch 2.5.1+cu121**, and an **NVIDIA GeForce RTX 2070 SUPER**. CUDA forward/backward execution and the three-epoch smoke test passed before the full evaluation. Scientific-package installation used NumPy 1.26.4, pandas 2.2.3, SciPy 1.13.1, scikit-learn 1.5.2, and h5py 3.11.0. The results archive records PyTorch and the CUDA device; it does not contain a complete independently verified environment lockfile.
+
+From `phase1`, using the working environment executable:
+
+```bat
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" run_msigdb_models.py --smoke
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" run_msigdb_models.py
+```
+
+Smoke outputs are separate and are not benchmark results. The runner requires NumPy, pandas, SciPy, scikit-learn, h5py, and PyTorch; it does not require Lightning, AnnData, or OmegaConf.
+
+## Independently verified results
+
+| Deposited embedding identifier | Mean pooled AUPRC | Sample SD, three seeds |
+| --- | ---: | ---: |
+| `mosaicfm-3b-prod_TE` | 0.337325 | 0.021470 |
+| `mosaicfm-3b-prod-cont-MFMv2_TE` | 0.334581 | 0.024112 |
+| `mosaicfm-v2-1_3b-merged_TE` | 0.327023 | 0.028082 |
+| `mosaicfm-70m-merged_TE` | 0.274141 | 0.013837 |
+| `state_TE` | 0.222807 | 0.004884 |
+| `transcriptformer` | 0.200267 | 0.007333 |
+| `geneformer` | 0.169982 | 0.013366 |
+
+The original `mosaicfm-3b-prod_TE` identifier has a slightly higher mean than `mosaicfm-3b-prod-cont-MFMv2_TE` in this run. The latter scores lower in seeds 0 and 1 and higher in seed 2. This is an observed comparison of deposited embeddings under the local evaluator, not evidence establishing the effect of proteomics continued pretraining. No statistical significance or verified checkpoint identity is claimed.
+
+## Output audit and limits
+
+All **554 files** in the full results archive were read completely: **552 CSVs and two JSON files**. Independent checks confirmed:
+
+- The binary **3,874 × 50** label table has unique gene and pathway identifiers.
+- Exact seeded partition assignments and counts for all three seeds, with no within-seed overlap.
+- All **21 benchmark prediction matrices**, each **775 × 50**, match the expected gene order and pathway columns and contain finite probabilities within [0, 1].
+- All **21 pooled AUPRCs** recomputed from predictions and uploaded labels, with maximum discrepancy **8.326672684688674e-17**. A second tie-aware average-precision calculation agreed with scikit-learn.
+- All seven summary means and sample SDs recomputed from the seeded results.
+- All **504 configuration records** match the complete grid; selected configurations match the lowest recorded test log loss.
+- All **504 histories covering 22,081 epochs** have consistent epoch sequences, finite nonnegative losses, reported best epochs, patience-15 stopping, and positive non-increasing learning rates.
+
+**These are output-consistency checks, not an independent training rerun.** Test-set probabilities and checkpoints were excluded from the archive, so recorded test losses and saved best-model weights could not be independently recomputed or verified. The original H5AD embeddings and GMT were also absent, so original-input provenance and GMT membership were not independently rechecked. Exact target-paper reproduction and the PCA comparison remain unresolved.
+
+Outputs relative to `phase1`:
+
+```text
+results/msigdb_models/
+  assumptions.json
+  labels.csv
+  metrics.csv
+  run_identity.json
+  summary.csv
+  seed_0/                         # same structure for seed_1 and seed_2
+    partitions.csv
+    <embedding_identifier>/
+      benchmark_predictions.csv
+      config_scores.csv
+      config_00_history.csv      # through config_23_history.csv
+      best_model.pt
+
+results/msigdb_models_smoke/      # diagnostic only; separate from full results
+```
+
+Checkpoint files remain local outputs and were not included in the CSV/JSON audit archive.
+
 # Next steps
 
 1. Preserve the verified Phase 0 and Phase 1 diagnostics as comparison baselines.
 2. Preserve the upstream marginal PCA/RF reconstruction and resolve its remaining feature discrepancy and exact target-paper configuration.
-3. Implement the actual MSigDB and tissue-separation evaluations.
+3. Preserve the audited MSigDB embedding evaluation; resolve the missing PCA construction and checkpoint provenance, then implement tissue separation.
 4. Resolve the Phase 0 author preprocessing and exact held-out manifest.
 5. Evaluate original versus proteomics-trained checkpoints under identical inputs, predictor, and scoring.
 
-No foundation-model checkpoint has been evaluated in this project. Current baseline agreement does not validate or refute the paper's continued-pretraining claims.
+No foundation-model checkpoint has been loaded for inference or trained in this project. Deposited gene embeddings have been evaluated through the MSigDB MLP task. Current results do not validate or refute the paper's continued-pretraining claims.
 
 ## Sources
 
