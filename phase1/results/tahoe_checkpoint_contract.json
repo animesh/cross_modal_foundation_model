@@ -1,0 +1,1042 @@
+{
+  "checkpoint": "\\\\it-promecfarm01.win.ntnu.no\\promec\\promec\\Animesh\\Download\\Virtual\\cross_modal_foundation_model\\phase1\\models\\tahoe_original\\70m-model",
+  "sha256": "ee1cdfa841066b9bce9c3705b112b17a2b459750d20696cbfedc6a3c397686c9",
+  "model_config": "mvc:\n  arch_style: inner product\n  query_activation: sigmoid\n  scaled_dot_product: true\nname: vevo_scgpt\nd_model: 512\nn_heads: 8\nuse_glu: false\nn_layers: 12\nattn_config:\n  attn_impl: flash\n  use_attn_mask: false\n  attn_type: grouped_query_attention\n  kv_nheads: 8\n  attn_pdrop: 0\ninit_device: cpu\nnorm_config:\n  eps: 1.0e-05\n  norm_type: layernorm\nnorm_scheme: pre\ngene_encoder:\n  use_norm: true\ncell_emb_style: cls\nexpansion_ratio: 4\nexpression_decoder:\n  n_layers: 1\n  n_outputs: 1\n  activation: leaky_relu\nexpression_encoder:\n  dropout: 0.1\n  use_norm: true\n  max_value: 512\n  activation: relu\n  input_emb_style: continuous\nstandard_scale_outputs: false\ntransformer_activation: relu\nuse_generative_training: false\nuse_cell_conditioned_generation: false\nvocab_size: 62720\nprecision: amp_bf16\nwandb_id: vevotx/vevo-scgpt/ftb65le8\n",
+  "collator_config": "do_mlm: true\nnum_bins: 51\nsampling: true\npad_value: -2\ndata_style: both\ndo_binning: true\ndo_padding: true\nmask_value: -1\nmax_length: 1024\nright_binning: false\nmlm_probability: 0.5\nuse_junk_tokens: false\npad_token_id: 0\n",
+  "tensors": {
+    "model.expression_decoder.linear_layers.0.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_decoder.linear_layers.0.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_decoder.out_proj.bias": {
+      "shape": [
+        1
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_decoder.out_proj.weight": {
+      "shape": [
+        1,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_encoder.linear1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_encoder.linear1.weight": {
+      "shape": [
+        512,
+        1
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_encoder.linear2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_encoder.linear2.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_encoder.norm.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.expression_encoder.norm.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.flag_encoder.weight": {
+      "shape": [
+        2,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.gene_encoder.embedding.weight": {
+      "shape": [
+        62720,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.gene_encoder.enc_norm.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.gene_encoder.enc_norm.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.mvc_decoder.W.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.mvc_decoder.gene2query.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.mvc_decoder.gene2query.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.0.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.1.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.10.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.11.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.2.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.3.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.4.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.5.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.6.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.7.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.8.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.down_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.down_proj.weight": {
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.norm1.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.norm1.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.norm2.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.norm2.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.self_attn.Wqkv.bias": {
+      "shape": [
+        1536
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.self_attn.Wqkv.weight": {
+      "shape": [
+        1536,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.self_attn.out_proj.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.self_attn.out_proj.weight": {
+      "shape": [
+        512,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.up_proj.bias": {
+      "shape": [
+        2048
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.layers.9.up_proj.weight": {
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.norm.bias": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    },
+    "model.transformer_encoder.norm.weight": {
+      "shape": [
+        512
+      ],
+      "dtype": "F32"
+    }
+  }
+}

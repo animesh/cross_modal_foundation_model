@@ -1,0 +1,13 @@
+{
+  "source": "\\\\it-promecfarm01.win.ntnu.no\\promec\\data\\phase1\\benchmarks\\msigdb\\cellxgene_ds_data\\rep_1.h5ad.gz",
+  "source_bytes": 11510596115,
+  "source_mtime_ns": 1756361245000000000,
+  "training_cells": 308,
+  "evaluation_cells": 1024,
+  "seed": 20261019,
+  "eligibility": "At least1023 positive vocabulary-mapped genes; sampled without replacement",
+  "limits": "Evaluation cells disjoint from this continued-training control, not necessarily original model pretraining; no study/donor split established",
+  "feature_mapping": "Version-stripped Ensembl IDs; sum duplicate IDs",
+  "matrix_encoding": "csr_matrix",
+  "mapped_genes": 60529
+}

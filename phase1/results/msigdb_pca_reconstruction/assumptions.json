@@ -1,0 +1,7 @@
+{
+  "scope": "Independent MSigDB PCA reconstruction; not exact author PCA",
+  "preserved": "Calls unchanged existing fit_config, predict, partitions and GRID; same labels/order, three seeds, epoch selection, test-loss configuration selection, pooled benchmark AP",
+  "departures": "50k cells sampled seed42; 512 PCA loadings; benchmark-gene feature universe; library normalization/log1p; transductive unsupervised PCA; all are reconstruction choices, not verified author settings",
+  "existing_runner_sha256": "66c14002bca8b498f862f91e955a78ee299ba91616ad09e15e7c1e4ad501a2f2",
+  "smoke": false
+}

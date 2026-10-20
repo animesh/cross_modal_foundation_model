@@ -1,0 +1,21 @@
+{
+  "scope": "Independent RNA-only continued-training control, NOT full paper reproduction",
+  "starting_checkpoint_sha256": "ee1cdfa841066b9bce9c3705b112b17a2b459750d20696cbfedc6a3c397686c9",
+  "profiles_sha256": "f258fa7f15a0ffd603bc083964dc8c228c4ffe34a666f60be4c587191935fa57",
+  "adapter_sha256": "e97ccaf968e3454e26ba3ad087a3c19e806baf8fe9b563d1cab8a8e12f5a0ac6",
+  "seed": 42,
+  "epochs": 1,
+  "batch_size": 1,
+  "max_length": 1024,
+  "learning_rate": 1e-05,
+  "weight_decay": 0.01,
+  "mask_probability": 0.5,
+  "precision": "FP32 weights, FP16 autocast",
+  "attention": "PyTorch efficient SDPA",
+  "preprocessing": "Positive RNA counts only; 51-bin per-profile quantiles before uniform subsampling; no missing targets or imputation",
+  "loss": "Mean of masked expression-decoder and MVC MSE",
+  "limits": "No single-cell evaluation yet; no original FlashAttention equivalence. Reserved evaluation rows must not be used for continued training.",
+  "status": "COMPLETE",
+  "successful_updates": 308,
+  "trained_checkpoint_sha256": "b1f898613747fb3a22a2d68ffffe64d8ee8952788b74f6b623cbbe1220b99a10"
+}

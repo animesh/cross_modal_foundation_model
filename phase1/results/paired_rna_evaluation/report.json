@@ -1,0 +1,24 @@
+{
+  "scope": "Paired held-out-from-continued-training RNA reconstruction diagnostic, NOT downstream single-cell performance or full paper reproduction",
+  "checkpoint_sha256": {
+    "original": "ee1cdfa841066b9bce9c3705b112b17a2b459750d20696cbfedc6a3c397686c9",
+    "protein": "3e4df3e0594c584da6ef2579df442050a6dba41123aafda3fecb62b6e89e870a",
+    "rna_control": "b1f898613747fb3a22a2d68ffffe64d8ee8952788b74f6b623cbbe1220b99a10"
+  },
+  "evaluation_inputs_sha256": "01cce87d409adcb9e224c1b8e7654492d0f5a9e494623303ee00430c80207f5a",
+  "cells": 1024,
+  "mask_seed": 73021,
+  "comparisons": {
+    "protein_minus_original": {
+      "mean_mse_difference": -0.8413562104105949,
+      "fraction_cells_lower_mse": 0.5830078125,
+      "interpretation": "Negative difference favors protein for this reconstruction diagnostic only"
+    },
+    "protein_minus_rna_control": {
+      "mean_mse_difference": 9.228376731276512,
+      "fraction_cells_lower_mse": 0.03515625,
+      "interpretation": "Negative difference favors protein for this reconstruction diagnostic only"
+    }
+  },
+  "limits": "Original pretraining overlap unknown; no donor/study split; one training seed; RNA count ties differ from continuous LFQ. Masked CLS outputs are not standard downstream embeddings."
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "Independent one-study protein continued-training experiment, NOT full paper reproduction",
+  "starting_checkpoint_sha256": "ee1cdfa841066b9bce9c3705b112b17a2b459750d20696cbfedc6a3c397686c9",
+  "profiles_sha256": "d4da51c46b31580a9ffa27ce15c876ec573f5af9a40ef16b40a5fbc86b54e480",
+  "adapter_sha256": "e97ccaf968e3454e26ba3ad087a3c19e806baf8fe9b563d1cab8a8e12f5a0ac6",
+  "seed": 42,
+  "epochs": 1,
+  "batch_size": 1,
+  "max_length": 1024,
+  "learning_rate": 1e-05,
+  "weight_decay": 0.01,
+  "mask_probability": 0.5,
+  "precision": "FP32 weights, FP16 autocast",
+  "attention": "PyTorch efficient SDPA",
+  "preprocessing": "Positive measured LFQ only; 51-bin per-profile quantiles before uniform subsampling; no missing targets or imputation",
+  "loss": "Mean of masked expression-decoder and MVC MSE",
+  "limits": "No RNA-only continued-training control; no single-cell evaluation; no original FlashAttention equivalence. Training dataset cannot be used as held-out protein evaluation.",
+  "status": "COMPLETE",
+  "successful_updates": 308,
+  "trained_checkpoint_sha256": "3e4df3e0594c584da6ef2579df442050a6dba41123aafda3fecb62b6e89e870a"
+}

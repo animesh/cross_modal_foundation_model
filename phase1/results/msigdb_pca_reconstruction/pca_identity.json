@@ -1,0 +1,15 @@
+{
+  "source": "D:\\data\\phase1\\benchmarks\\msigdb\\cellxgene_ds_data\\rep_1.h5ad.gz",
+  "source_bytes": 11510596115,
+  "source_mtime_ns": 1756361245000000000,
+  "artifact_sha256": "605feebeba4beaebe844b33c5a377bcd57dcde8517d1b60fa10c45164f762feb",
+  "gmt_sha256": "0f31c9ef8a8b9043d58f344df3729bc1f8f060c6a9d99847c1f8eb4f54e647c5",
+  "components": 512,
+  "max_cells": 50000,
+  "sampling_seed": 42,
+  "svd_seed": 42,
+  "power_iterations": 2,
+  "preprocessing": "Sum duplicate gene-symbol counts; normalize using all-feature library size to 10000; natural log1p; center genes; no variance scaling",
+  "pca_feature_universe": "Only the deposited benchmark gene universe; includes held-out genes without labels (transductive)",
+  "scope": "Independent reconstruction; author PCA preprocessing/dimension not established"
+}

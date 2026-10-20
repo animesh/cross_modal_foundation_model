@@ -1,0 +1,20 @@
+{
+  "source_shape": [
+    524043,
+    60664
+  ],
+  "source_encoding": "csr_matrix",
+  "sampled_cells": 50000,
+  "used_cells": 50000,
+  "zero_library_cells": 0,
+  "evaluation_genes": 3874,
+  "duplicate_symbol_rows_summed": 0,
+  "integer_like_sampled_counts": true,
+  "explained_variance_ratio": 0.5757755238414842,
+  "loadings_shape": [
+    3874,
+    512
+  ],
+  "source_identity_limit": "Source size/mtime recorded; source file not fully SHA256 hashed",
+  "loadings_sha256": "2f500e90ca935681c82bcc8ee9298a200076f2133b58ebe4603810e169dfe36d"
+}

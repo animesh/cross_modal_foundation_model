@@ -1,0 +1,87 @@
+{
+  "scope": "Synthetic hardware feasibility proxy, NOT original Tahoe checkpoint or biological reproduction",
+  "torch": "2.5.1+cu121",
+  "cuda": "12.1",
+  "gpu": "NVIDIA GeForce RTX 2070 SUPER",
+  "free_GiB": 6.9697265625,
+  "total_GiB": 7.99969482421875,
+  "parameters": 70000000,
+  "architecture": "12 blocks, width512, 8 heads, FF2048, vocabulary62000; extra trainable vector to reach exactly70M",
+  "checkpointing": true,
+  "tests": [
+    {
+      "kind": "attention",
+      "backend": "efficient",
+      "status": "PASS"
+    },
+    {
+      "kind": "attention",
+      "backend": "math",
+      "status": "PASS"
+    },
+    {
+      "kind": "70M_forward_backward_Adam",
+      "batch": 1,
+      "sequence_length": 256,
+      "backend": "efficient",
+      "precision": "FP32 parameters, FP16 autocast",
+      "steps": 2,
+      "status": "PASS",
+      "successful_steps": 2,
+      "attempts": 2,
+      "skipped_overflows": [],
+      "loss": 27.611968994140625,
+      "seconds": 2.207720800070092,
+      "peak_allocated_GiB": 1.3215198516845703,
+      "peak_reserved_GiB": 1.3515625
+    },
+    {
+      "kind": "70M_forward_backward_Adam",
+      "batch": 1,
+      "sequence_length": 512,
+      "backend": "efficient",
+      "precision": "FP32 parameters, FP16 autocast",
+      "steps": 2,
+      "status": "PASS",
+      "successful_steps": 2,
+      "attempts": 2,
+      "skipped_overflows": [],
+      "loss": 20.647584915161133,
+      "seconds": 0.9136918000876904,
+      "peak_allocated_GiB": 1.321526050567627,
+      "peak_reserved_GiB": 1.35546875
+    },
+    {
+      "kind": "70M_forward_backward_Adam",
+      "batch": 1,
+      "sequence_length": 1024,
+      "backend": "efficient",
+      "precision": "FP32 parameters, FP16 autocast",
+      "steps": 2,
+      "status": "PASS",
+      "successful_steps": 2,
+      "attempts": 2,
+      "skipped_overflows": [],
+      "loss": 29.11315155029297,
+      "seconds": 0.9183666000608355,
+      "peak_allocated_GiB": 1.3176283836364746,
+      "peak_reserved_GiB": 1.35546875
+    },
+    {
+      "kind": "70M_forward_backward_Adam",
+      "batch": 1,
+      "sequence_length": 2048,
+      "backend": "efficient",
+      "precision": "FP32 parameters, FP16 autocast",
+      "steps": 2,
+      "status": "PASS",
+      "successful_steps": 2,
+      "attempts": 2,
+      "skipped_overflows": [],
+      "loss": 30.583904266357422,
+      "seconds": 0.9299661000259221,
+      "peak_allocated_GiB": 1.32057523727417,
+      "peak_reserved_GiB": 1.470703125
+    }
+  ]
+}

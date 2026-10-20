@@ -1,0 +1,40 @@
+{
+  "scope": "Original checkpoint loaded into independently implemented SDPA adapter; synthetic binned input; no biological evaluation",
+  "backend_equivalence": "Not verified against upstream FlashAttention runtime",
+  "tests": [
+    {
+      "length": 256,
+      "status": "PASS",
+      "successful_updates": 2,
+      "attempts": 2,
+      "loss": 213.47744750976562,
+      "peak_GiB": 1.3230853080749512,
+      "seconds": 0.7113445999566466,
+      "SDPA_max_abs_differences": {
+        "cell_emb": 0.016328811645507812,
+        "expr_preds": 0.0625,
+        "mvc_output": 0.03125
+      }
+    },
+    {
+      "length": 1024,
+      "status": "PASS",
+      "successful_updates": 2,
+      "attempts": 2,
+      "loss": 224.47799682617188,
+      "peak_GiB": 1.3299360275268555,
+      "seconds": 0.36786750005558133,
+      "SDPA_max_abs_differences": {
+        "cell_emb": 0.010787725448608398,
+        "expr_preds": 0.046875,
+        "mvc_output": 0.03125
+      }
+    }
+  ],
+  "checkpoint_sha256": "ee1cdfa841066b9bce9c3705b112b17a2b459750d20696cbfedc6a3c397686c9",
+  "tensors": 163,
+  "parameters": 70996993,
+  "gpu": "NVIDIA GeForce RTX 2070 SUPER",
+  "torch": "2.5.1+cu121",
+  "status": "PASS"
+}

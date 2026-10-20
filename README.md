@@ -1,6 +1,6 @@
 # Single-cell foundation models benefit from cross-modal training: adding proteomics data beats parameter scaling
 
-Independent baseline checks for Burq et al. (2026), *Single-cell foundation models benefit from cross-modal training: adding proteomics data beats parameter scaling*. [bioRxiv preprint](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full), DOI: **10.64898/2026.08.14.744845**.
+Independent baseline checks and small-corpus continued-training experiments for Burq et al. (2026), *Single-cell foundation models benefit from cross-modal training: adding proteomics data beats parameter scaling*. [bioRxiv preprint](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full), DOI: **10.64898/2026.08.14.744845**.
 
 The aim is to stress-test what is actually reproducible, starting with classical baselines before evaluating foundation-model claims. The results below distinguish observed data, implementation choices, and unresolved author-protocol details.
 
@@ -8,11 +8,16 @@ The aim is to stress-test what is actually reproducible, starting with classical
 
 | Stage | Completed | Remaining |
 | --- | --- | --- |
-| Phase 0: protein perturbation | PXD014791 input audit; 156-configuration classical-baseline sweep; local Windows rerun and output verification | Exact author preprocessing and held-out manifest; ProTargetMiner; model embeddings |
-| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; seven deposited MSigDB embeddings evaluated with independent output audit; tissue separation on 15 deposited cell embeddings with host verification and local displayed-score agreement | Exact target-paper configuration and numerical equivalence; MSigDB PCA baseline; checkpoint provenance; independent audit of local tissue-separation output files |
-| Phase 2: foundation models | Deposited gene and cell embeddings evaluated in Phase 1; no foundation-model checkpoint inference or training performed | Original versus proteomics-trained checkpoint evaluation with verified provenance and identical conditions |
+| Phase 0: protein perturbation | PXD014791 input audit; 156-configuration classical-baseline sweep; local Windows rerun and output verification | Exact author preprocessing and held-out manifest; ProTargetMiner; uncontaminated checkpoint-based protein-transfer evaluation |
+| Phase 1: Figure 2 baselines | Five-fold PCA/logistic diagnostic; upstream marginal-essentiality PCA/RF artifact evaluation; raw-count PCA reconstruction; seven deposited MSigDB embeddings evaluated with independent output audit; independent MSigDB PCA reconstruction and three-seed MLP evaluation; tissue separation on 15 deposited cell embeddings with host verification and local displayed-score agreement | Exact target-paper configuration and numerical equivalence, including author MSigDB PCA construction; deposited-embedding provenance; independent audit of local tissue-separation output files |
+| Phase 2: checkpoint and continued training | Published original 70M checkpoint acquired at a pinned revision; strict tensor loading; actual GPU forward/backward tests; real protein input preparation; one protein epoch and matched 308-update RNA control completed; paired reconstruction evaluation on 1,024 reserved RNA cells completed | Fresh RNA-derived contextual embeddings and downstream DepMap/MSigDB/tissue evaluation for the three checkpoints; full-corpus author-recipe reproduction; multiple seeds and independent output audit |
+| Paper-method review | Uploaded 11-page PDF, including supplementary information, reviewed; distinctions between paper benchmarks and local reconstruction experiment documented | Exact training configuration, batch-correction implementation, corpus/augmentation manifests, and numerical evaluation equivalence |
 
 **This is not yet a complete reproduction of Figures 2 or 3.** Numerical proximity to a figure does not establish identical processing or validate the paper's model-training claims.
+
+**Current experimental finding:** protein continued training slightly lowers masked RNA reconstruction MSE relative to the original checkpoint, but the matched RNA-only control performs substantially better on this diagnostic. This does not establish a protein-specific advantage and is not the downstream representation test used for the paper's central claim. Actual checkpoint inference and continued training have now been performed; older statements that no checkpoint was loaded or trained are superseded.
+
+Status updated after the completed paired RNA evaluation. Existing classical-baseline and deposited-artifact results are preserved. Newly reported training/evaluation values below come from local console output unless an independent uploaded-file audit is explicitly stated.
 
 ## Questions worth testing
 
@@ -22,7 +27,7 @@ The paper compares a proteomics-continued-pretrained 70M model with larger RNA-o
 
 ### Protein-to-gene mapping
 
-The paper maps proteins to gene tokens. Our current Phase 0 parser takes the first listed gene name and keeps the first protein-group row per gene. This is an explicit reconstruction choice, not verified equivalence to the authors' mapping. Mapping coverage and handling of isoforms, ambiguous identifiers, and duplicate genes remain relevant audit questions.
+The paper maps proteins to gene tokens. Our current Phase 0 parser takes the first listed gene name and keeps the first protein-group row per gene. This is an explicit reconstruction choice, not verified equivalence to the authors' mapping. The separate continued-training input preparer now uses unambiguous Ensembl mapping and sums same-token protein groups; it does not change the historical Phase 0 parser or results. Mapping coverage and handling of isoforms, ambiguous identifiers, and duplicate genes remain relevant audit questions.
 
 ### Classical baselines versus model improvements
 
@@ -60,14 +65,14 @@ The current sweep uses only the 308 metadata-matched samples. It does not infer 
 
 The source study explicitly identifies **`TRA = Trametinib`**. The earlier README's assignment of `TRA` to Trastuzumab was incorrect. `TRA` contributes one formal pair in PMC-B, with four samples.
 
-**`TRS` remains unresolved.** It contributes two formal pairs, in PMC-B and PMC-E, with eight samples. The current runner retains drug codes and does not assign `TRS` a drug identity by elimination.
+**`TRS` remains unresolved as a local metadata code.** It contributes two formal pairs, in PMC-B and PMC-E, with eight samples. The current runner retains drug codes and does not assign `TRS` a drug identity by elimination.
 
 Two scoring scenarios are reported:
 
 - **All 60 pairs.**
 - **Provisional 58 pairs:** exclude `TRS` pairs from scoring only. They remain eligible neighbours for other queries.
 
-The provisional exclusion matches the reported pair count but is not a verified author manifest. Trametinib is present in the formal metadata; the previous claim that it was absent is superseded.
+The provisional exclusion matches the reported pair count but is not a verified author manifest. The subsequently reviewed paper supplementary information lists excluded cardiomyocyte drugs and states that trastuzumab is retained; it does not by itself establish the local `TRS` code identity. Therefore the historical provisional exclusion must not be relabelled as the author split. Trametinib is present in the formal metadata; the previous claim that it was absent is superseded.
 
 ## Current implementation
 
@@ -335,7 +340,7 @@ The `.h5ad.gz` artifact is readable directly with h5py despite its suffix. The r
 
 The seven embeddings are evaluated on the same deposited gene universe. Special tokens in the separate full-vocabulary NPZ files are not added to the evaluation. The large source expression dataset is not used by this branch.
 
-**PCA is excluded.** Neither the supplied MSigDB source archive nor the reported repository searches established the MSigDB PCA-generation contract, and no PCA embedding was present in the local inventory. DepMap PCA is not substituted. Embedding filenames are retained as identifiers; their exact correspondence to target-paper checkpoints and training histories remains unverified.
+**PCA is excluded from this seven-deposited-embedding run, but a separate independent PCA reconstruction and evaluation has now completed**, as documented below. No deposited author MSigDB PCA embedding or exact author PCA-generation contract has been established. DepMap PCA is not substituted. Embedding filenames are retained as identifiers; their exact correspondence to target-paper checkpoints and training histories remains unverified.
 
 ## Evaluation protocol
 
@@ -399,7 +404,7 @@ All **554 files** in the full results archive were read completely: **552 CSVs a
 - All **504 configuration records** match the complete grid; selected configurations match the lowest recorded test log loss.
 - All **504 histories covering 22,081 epochs** have consistent epoch sequences, finite nonnegative losses, reported best epochs, patience-15 stopping, and positive non-increasing learning rates.
 
-**These are output-consistency checks, not an independent training rerun.** Test-set probabilities and checkpoints were excluded from the archive, so recorded test losses and saved best-model weights could not be independently recomputed or verified. The original H5AD embeddings and GMT were also absent, so original-input provenance and GMT membership were not independently rechecked. Exact target-paper reproduction and the PCA comparison remain unresolved.
+**These are output-consistency checks, not an independent training rerun.** Test-set probabilities and checkpoints were excluded from the archive, so recorded test losses and saved best-model weights could not be independently recomputed or verified. The original H5AD embeddings and GMT were also absent, so original-input provenance and GMT membership were not independently rechecked. Exact target-paper reproduction remains unresolved. The separate independent PCA comparison below is complete; equivalence to the author PCA remains unverified.
 
 Outputs relative to `phase1`:
 
@@ -422,6 +427,70 @@ results/msigdb_models_smoke/      # diagnostic only; separate from full results
 ```
 
 Checkpoint files remain local outputs and were not included in the CSV/JSON audit archive.
+
+# Phase 1: independent MSigDB PCA reconstruction
+
+## Completed implementation and scope
+
+`run_msigdb_pca.py` reconstructs a PCA gene embedding from the local MSigDB RNA expression source and evaluates it with the existing multilabel MLP protocol. This is a separate branch: the seven deposited-embedding results above remain unchanged. It is not a deposited author PCA artifact or an established exact reconstruction of the paper's PCA.
+
+The recorded source matrix has **524,043 cells x 60,664 features**, in CSR format. The reconstruction uses **50,000 sampled cells**, with sampling seed 42, and the same **3,874 benchmark genes** used by the deposited-embedding evaluation. All sampled cells had nonzero library size. The build reports integer-like sampled counts and zero duplicate-symbol rows summed for this resolved gene universe.
+
+Recorded preprocessing and PCA settings:
+
+- Resolve source feature identifiers to the benchmark gene symbols; retain the recorded resolution evidence in `gene_resolution.json`.
+- Sum duplicate-symbol counts where present; normalize using the all-feature library size to 10,000, then natural `log1p`.
+- Center genes without variance scaling.
+- Fit **512 components**, with SVD seed 42 and two power iterations.
+- Construct a **3,874 x 512** loading matrix. Recorded explained-variance ratio: **0.5757755238414842**.
+
+The PCA feature universe includes all benchmark genes, including genes later held out from MLP fitting, without using their pathway labels. This feature construction is **transductive**, not a PCA fitted only to MLP training genes. Source size and modification time are recorded, but the large source RNA file was not fully SHA-256 hashed. Author PCA preprocessing, dimension, feature universe, and sampling equivalence remain unresolved.
+
+## Three-seed MLP results
+
+The reconstructed embedding uses the same 70/5/5/20% gene partitions, 24-configuration grid, and pooled benchmark AUPRC definition as the deposited-embedding evaluator. The completed branch contains **3 seeds x 24 configurations = 72 fits**, with 775 benchmark genes per seed.
+
+| Seed | Pooled benchmark AUPRC | Selected hidden size | Hidden layers | Dropout |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | 0.25946286760652737 | 2,048 | 1 | 0.5 |
+| 1 | 0.23418525748359878 | 2,048 | 1 | 0.5 |
+| 2 | 0.23161234738549097 | 1,024 | 1 | 0.5 |
+
+**Mean pooled AUPRC: 0.2417534908252057. Sample SD across three seeds: 0.015390629814284636.** This independent PCA scores below the deposited `mosaicfm-70m-merged_TE` mean of 0.274141 under the documented local evaluator. This is a comparison of these feature constructions, not evidence establishing a continued-pretraining benefit or exact agreement with the paper.
+
+## Direct output inspection and limits
+
+The available PCA results archive contains **92 files: 86 CSVs, five JSON files, and one NPZ loading file**. Archive integrity was checked, every member was read, and all CSV/JSON contents were parsed. The three **775 x 50** benchmark probability matrices were checked for finite values in [0, 1], aligned to the uploaded label table, and their pooled AUPRCs were independently recomputed. All three matched the recorded metrics; the summary mean and sample SD were also recomputed.
+
+These are output-consistency checks, not a fresh PCA build or independent MLP training rerun. Original source RNA, the deposited input embedding artifact, and the GMT were not part of this results archive. Saved MLP weights were absent. No independent verification of the original RNA preprocessing, external gene-resolution evidence, or saved best-model weights is claimed. Reading the NPZ archive member does not by itself establish independent verification of every loading value or its recorded hash.
+
+Outputs relative to `phase1`:
+
+```text
+results/msigdb_pca_reconstruction/
+  assumptions.json
+  gene_resolution.json
+  labels.csv
+  metrics.csv
+  pca_build.json
+  pca_cells.csv
+  pca_gene_mapping.csv
+  pca_identity.json
+  pca_loadings.npz
+  run_identity.json
+  summary.csv
+  seed_0/                         # same structure for seed_1 and seed_2
+    partitions.csv
+    pca_reconstructed/
+      benchmark_predictions.csv
+      config_scores.csv
+      config_00_history.csv       # through config_23_history.csv
+      best_model.pt               # local only; absent from inspected archive
+
+results/msigdb_pca_reconstruction_smoke/  # diagnostic, not full results
+```
+
+From `phase1`, the completed full branch was implemented by `run_msigdb_pca.py`. Existing completed outputs should be preserved, not regenerated merely to update documentation.
 
 # Phase 1: tissue separation of deposited cell embeddings
 
@@ -517,20 +586,247 @@ results/cell_line_separation/
 
 `assumptions.json` records the metric, scope, host/runtime versions available to the runner, and input SHA-256 hashes. Existing Phase 0, DepMap, and MSigDB implementations and outputs remain unchanged.
 
+# Phase 2: original checkpoint, continued training, and paired RNA evaluation
+
+## Scope and evidence
+
+This phase is an **independent one-study experiment**, not a reconstruction of the paper's 440-source continued-pretraining corpus. It preserves the original checkpoint and all Phase 0/Phase 1 outputs. Three checkpoint states are now available: original 70M, protein-continued 70M, and RNA-control-continued 70M.
+
+Local console logs establish successful execution of both training arms and the paired evaluator. The real protein-input archive was independently inspected: its NPZ, report, and sample metadata were read and checked for shape, finite nonnegative values, gene uniqueness, measured-gene counts, and sample alignment. The final trained checkpoint files, complete training CSVs, and paired per-cell evaluation outputs have not been independently audited here. Runtime assertions performed locally are distinct from independent inspection of those final artifacts.
+
+## Working runtime and hardware feasibility
+
+The existing Windows environment is used:
+
+```text
+%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe
+PyTorch 2.5.1+cu121
+CUDA build 12.1; CUDA available
+NVIDIA GeForce RTX 2070 SUPER, 8 GiB VRAM
+```
+
+Hugging Face Hub, safetensors, PyYAML and their dependencies were installed during checkpoint acquisition; h5py was already available, and openpyxl was installed for metadata preparation. This is not a complete environment lockfile. The implementation uses a plain-PyTorch adapter rather than requiring the upstream training stack.
+
+`test_gpu_70m.py` first tested a synthetic 70,000,000-parameter proxy with batch size 1, FP32 parameters, FP16 autocast, gradient checkpointing, and two successful Adam updates at sequence lengths 256, 512, 1,024, and 2,048. All four passed using efficient SDPA; peak allocated memory was approximately 1.32 GiB. An earlier unnamed assertion was corrected to permit gradient-scaler adaptation and provide explicit diagnostics; the final run required no overflow retries. This proxy is not Tahoe checkpoint validation.
+
+The RTX 2070 SUPER was not ruled out by parameter memory. Standard upstream FlashAttention-2 support and PyTorch efficient SDPA are separate issues: the latter executed successfully on this GPU. No hardware replacement was required for the completed experiment.
+
+## Original checkpoint acquisition and loading
+
+Published source: `tahoebio/Tahoe-x1`, revision `d218a580b9c2500ae9dfc8367a398545e6f017a8`, subdirectory `70m-model`. Only the 70M safetensors, vocabulary, model configuration, and collator configuration were downloaded, not the larger checkpoints.
+
+```text
+phase1/models/tahoe_original/70m-model/
+  model.safetensors
+  model_config.yml
+  collator_config.yml
+  vocab.json
+```
+
+The checkpoint contract contains **163 F32 tensors**, **70,996,993 parameters**, and a **62,720-token vocabulary**. The adapter checks the starting checkpoint SHA-256:
+
+```text
+ee1cdfa841066b9bce9c3705b112b17a2b459750d20696cbfedc6a3c397686c9
+```
+
+The architecture has 12 pre-normalized transformer layers, width 512, eight query/key/value heads, feed-forward expansion 4, ReLU transformer activation, continuous expression encoding, CLS cell pooling, an expression decoder, and a scaled inner-product MVC decoder. The downloaded configuration requests FlashAttention and `amp_bf16`; the local adapter instead uses PyTorch efficient SDPA and FP16 autocast. This is a documented runtime difference, not original-backend equivalence.
+
+`test_tahoe_original.py` strictly loads all tensor names/shapes and checks loaded values. It reimplements the required transformer operations using SDPA while retaining the inspected encoder/decoder operations. No upstream files are modified. Efficient SDPA is compared against PyTorch math SDPA on the same loaded adapter; this comparison does **not** compare against the upstream FlashAttention implementation.
+
+| Sequence length | Successful Adam updates | Attempts | Peak allocated GiB | Expression-prediction maximum absolute SDPA difference | MVC maximum absolute difference | CLS maximum absolute difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 256 | 2 | 2 | 1.323085 | 0.062500 | 0.031250 | 0.016329 |
+| 1,024 | 2 | 2 | 1.329936 | 0.046875 | 0.031250 | 0.010788 |
+
+Both tests passed the implemented `rtol=0.03`, `atol=0.03` comparisons and finite-gradient/update checks. Nonzero backend differences remain documented. The test uses synthetic binned inputs and does not establish biological performance.
+
+## Real protein training inputs
+
+`prepare_protein_training.py` uses the existing PXD014791 protein table, formal metadata workbook, checkpoint vocabulary, and the local MSigDB expression dataset's feature identifiers for symbol-to-Ensembl mapping. It strips Ensembl version suffixes and removes a feature-name suffix only when it exactly matches that row's Ensembl ID.
+
+The complete mapping contract contained 6,413 filtered protein groups, 381 LFQ columns, and 60,664 expression feature records. Unambiguous mapping retained **5,924 protein groups**, excluded **489 groups**, and yielded **5,763 unique gene tokens**. Same-token protein-group intensities are summed. Multi-gene groups are retained only when all listed symbols resolve uniquely to the same Ensembl gene; unresolved or ambiguous groups are excluded. This differs from the historical first-gene/first-row Phase 0 reconstruction.
+
+Only **308 metadata-matched formal samples** are used. The 73 auxiliary LFQ columns are excluded by metadata matching. Missing LFQ measurements remain zero in storage and are excluded from training targets; there is no imputation. The CSV field limit was increased to 2,147,483,647 after the original table exceeded Python's default 131,072-character field limit.
+
+```text
+phase1/results/protein_mapping_contract.json
+phase1/results/protein_training_inputs/
+  profiles.npz                 # gene_ids, lfq (308 x 5763), samples
+  sample_metadata.csv
+  report.json
+```
+
+The uploaded protein-input archive was independently checked in full. This does not imply that the original large MaxQuant table or workbook was independently reread during that archive audit.
+
+## Completed protein continued-training arm
+
+`train_protein_epoch.py` starts from the original checkpoint, not from the diagnostic test's transient updated model. It completes one pass over the 308 real protein profiles with seed 42.
+
+- Batch size 1; maximum sequence length 1,024, including CLS.
+- Positive measured LFQ values only; per-profile 51-bin quantiles computed before subsampling.
+- Uniform sampling of up to 1,023 measured gene tokens without replacement, then sorting selected indices.
+- 50% masking, excluding CLS; masked input value -1.
+- Mean of masked expression-decoder MSE and masked MVC MSE.
+- AdamW, learning rate 0.00001, weight decay 0.01, `foreach=False`.
+- FP32 parameters, FP16 autocast, efficient SDPA, gradient checkpointing, GradScaler initial scale 1.0.
+- Finite-loss/gradient checks, successful-update checks, final finite weights, and exact saved-checkpoint reload checks.
+
+All **308 successful updates** completed. Displayed loss was **154.414154** at step 1 and **63.906990** at step 308; these are different sampled/masked profiles, not a fixed-validation learning curve. All displayed checkpoints used one attempt, scale 1.0, and approximately **1.3292 GiB** peak allocated memory. Complete retry counts must be verified from the full training CSV before claiming that every unprinted step used one attempt.
+
+```text
+phase1/results/protein_continued_seed42/
+  model.safetensors
+  model_config.yml
+  collator_config.yml
+  vocab.json
+  training.csv
+  manifest.json
+```
+
+The copied YAML remains the published configuration and is not a standalone record of the local SDPA/FP16 training settings; the local runtime recipe is recorded in `manifest.json` and the script. The manifest records source-profile, adapter, starting-checkpoint and trained-checkpoint hashes. Existing output directories are not overwritten. Interrupted-run resume is not implemented.
+
+**Held-out protein evaluation restriction:** all formal PXD014791 samples were used for this arm, including treated samples. This checkpoint cannot be used to reproduce the paper's unseen-drug test on PXD014791. A training corpus with the paper's drug exclusions is required for that claim.
+
+## Completed RNA-only continued-training control
+
+`prepare_rna_control.py` uses the existing `rep_1.h5ad.gz` source under `phase1/benchmarks/msigdb/cellxgene_ds_data`. The file was read as a CSR HDF5 matrix in the successful local run; the suffix alone is not treated as proof of gzip compression. The recorded source size is **11,510,596,115 bytes**.
+
+The preparer maps version-stripped Ensembl IDs to **60,529 unique vocabulary genes**, sums duplicate mapped IDs, checks finite nonnegative integer-like RNA counts, and selects cells with at least 1,023 positive mapped genes. With split seed **20261019**, it reserves **308 training cells** and **1,024 distinct evaluation cells**, sampled without replacement. Evaluation rows are disjoint from this continued-training control, but original model-pretraining overlap and donor/study separation are unknown.
+
+```text
+phase1/results/rna_control_inputs/
+  profiles.npz                 # gene_ids, lfq field storing RNA counts, samples
+  cell_split.npz               # train_rows, evaluation_rows
+  manifest.json
+```
+
+The `lfq` array name is reused for interface compatibility; in this directory it stores RNA counts, not protein measurements.
+
+`train_rna_control.py` independently starts from the original checkpoint and completes **308 updates**, matching the protein arm's optimizer, learning rate, weight decay, masking, maximum length, batch size, precision, and training seed. The profile-sampling function is identical. Count ties and differing measured-gene counts mean the sampled genes/masks need not remain identical across modalities. This is an equal-update small-corpus control, not the paper's million-sample bulk-RNA control.
+
+Displayed loss was **154.649200** at step 1 and **161.671204** at step 308; this is not a fixed-profile validation comparison. All displayed records used one attempt and scale 1.0, with approximately **1.3292 GiB** peak allocation. Both arms completed and saved separate checkpoints. A stray terminal backtick produced an error only after RNA training finished and did not invalidate the completed run.
+
+```text
+phase1/results/rna_continued_seed42/
+  model.safetensors
+  model_config.yml
+  collator_config.yml
+  vocab.json
+  training.csv
+  manifest.json
+```
+
+## Completed paired RNA reconstruction evaluation
+
+`evaluate_paired_rna.py` performs no training. It verifies checkpoint hashes and completed 308-update manifests, checks source size/mtime and train/evaluation row disjointness, and loads each checkpoint strictly into the same adapter.
+
+All three models see the **same 1,024 reserved cells**, selected genes, quantile-binned targets, and masks, generated once with mask/sampling seed **73021**. Evaluation uses batch size 1, sequence length 1,024, FP16 autocast, efficient SDPA, and evaluation mode. The metric is per-cell masked expression/MVC MSE, averaged equally across the two decoders and then across cells. Lower is better.
+
+| Checkpoint | Cells | Mean expression MSE | Mean MVC MSE | Mean combined MSE |
+| --- | ---: | ---: | ---: | ---: |
+| Original | 1,024 | 199.1997450515628 | 202.5993195027113 | 200.89953212440014 |
+| Protein continued | 1,024 | 198.45608840882778 | 201.66026303172112 | 200.05817591398954 |
+| RNA-only control | 1,024 | 188.60444156825542 | 193.05515705794096 | **190.82979918271303** |
+
+| Paired comparison | Mean combined-MSE difference | Fraction of cells where protein MSE is lower |
+| --- | ---: | ---: |
+| Protein minus original | -0.8413562104105949 | 0.5830078125 (597/1,024) |
+| Protein minus RNA control | +9.228376731276512 | 0.03515625 (36/1,024) |
+
+**Observed conclusion:** protein training slightly improves reconstruction relative to the original checkpoint, but the RNA-only control performs better. This experiment does not support a protein-specific advantage for this reconstruction diagnostic. It does not confirm or refute the paper's downstream representation claim. No significance test, confidence interval, multiple-training-seed result, or independent final-output audit is claimed.
+
+The evaluator also saves CLS embeddings generated from **masked** inputs. These are diagnostic outputs, not the unmasked contextual embeddings required for standard downstream representation evaluation; they must not be silently substituted for Figure 2 embeddings.
+
+```text
+phase1/results/paired_rna_evaluation/
+  evaluation_inputs.npz
+  original_per_cell.csv
+  protein_per_cell.csv
+  rna_control_per_cell.csv
+  original_masked_cls.npz
+  protein_masked_cls.npz
+  rna_control_masked_cls.npz
+  summary.csv
+  report.json
+```
+
+All three 1,024-cell passes completed locally. The values above are transcribed from the displayed evaluator output. Final per-cell files and checkpoint hashes have not been independently recomputed from an uploaded final-results archive.
+
+## Executable sequence for the completed experiment
+
+From the repository root, using the existing environment:
+
+```bat
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/test_gpu_70m.py
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/test_tahoe_original.py
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/prepare_protein_training.py
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/train_protein_epoch.py
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/prepare_rna_control.py
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/train_rna_control.py
+"%LOCALAPPDATA%\venvs\msigdb-managed312\Scripts\python.exe" phase1/evaluate_paired_rna.py
+```
+
+These document completed stages, not instructions to rerun or overwrite them. `prepare_protein_training.py` consumes the existing mapping contract; checkpoint acquisition and contract generation are prerequisites. Training and paired-evaluation scripts refuse existing output directories. The tested adapter is shared unchanged by both training arms and evaluation.
+
+# Paper protocol and differences from this experiment
+
+The uploaded 11-page preprint, including supplementary information, was reviewed after the independent training/reconstruction experiment. The paper's Methods, Figure 2 caption, and supplementary sections are the source for the distinctions below; the earlier abstract-only account was incomplete.
+
+## Author training and controls
+
+The paper describes continued pretraining of the published 70M checkpoint for one epoch on **48,843 proteomic samples from 440 sources**, using the original Tahoe training recipe. Proteins are mapped to gene tokens, abundances to expression values, with per-sample quantile binning. Raw and batch-corrected views form a format-aware augmentation, with uniform sampling. The headline corpus excludes sources with fewer than ten samples and excludes drugs designated for held-out perturbation evaluation.
+
+The RNA controls use **ARCHS4 bulk RNA-seq**, not our 308 single cells. The paper reports 877,715 successfully encoded samples from 888,821 source samples, and an RNA-only training arm of **1,003,000 rows, batch size 4, 250,750 steps**, for one epoch. The precise relationship between the encoded-source count and training-row count remains unresolved. A combined proteomics-plus-bulk-RNA arm is also evaluated. Their budget comparison is a one-epoch/per-sample exposure comparison, not our equal-308-update control.
+
+The paper reports multiple continued-training seeds, generally three for the Figure 2 arms. Our experiment uses one seed, one protein study, raw measured LFQ only, no batch-corrected view, and independently chosen optimizer/loss/runtime settings. The PDF does not explicitly supply a complete proteomics optimizer, learning-rate, batch-size, loss, or batch-correction implementation contract. Referencing the original recipe does not establish that our selected settings are equivalent.
+
+## Author representation evaluation
+
+Figure 2 evaluates RNA-derived contextual gene/cell representations using the original Tahoe evaluation code and datasets:
+
+- DepMap gene-essentiality prediction, AUPRC.
+- MSigDB Hallmark pathway-membership prediction, AUPRC.
+- Tissue-of-origin separation, the upstream LISI-labelled enrichment score.
+
+Comparisons include original 70M, 1B, and 3B checkpoints, proteomics-continued 70M, bulk-RNA-continued 70M, combined-data-continued 70M, and classical references. The authors report improvements in essentiality and tissue separation with proteomics; pathway membership approximately matches the larger models within seed variability. Bulk RNA improves pathway membership and tissue separation but not essentiality in their reported comparison. These are author-reported results, not results reproduced by our trained checkpoints.
+
+**Masked RNA reconstruction MSE is not the Figure 2 claim metric.** Existing deposited-artifact evaluations and our masked CLS diagnostic outputs do not replace fresh contextual embeddings from the three actual checkpoints under identical RNA input conditions.
+
+## Author held-out protein evaluation and exclusions
+
+The paper separately evaluates PXD014791 and ProTargetMiner with leave-one-drug-context-pair-out prediction using five cosine-nearest pair embeddings. It scores predicted versus measured log-fold changes relative to matched controls, primarily across the 100 proteins with largest absolute changes. The reported evaluated counts are **58 cardiomyocyte pairs** and **61 ProTargetMiner pairs**.
+
+Supplementary information lists 21 excluded cardiomyocyte drugs and states that trastuzumab is retained. This establishes author exclusion intent, not the local metadata-code mapping or exact scoring manifest. Historical `TRS` exclusion remains provisional. Our all-sample PXD014791 training violates the unseen-drug condition for evaluation on that dataset, regardless of whether a downstream neighbour predictor excludes the query pair.
+
+No successful ProTargetMiner reporter-channel reconstruction or benchmark run has been established in this project. This branch is not a prerequisite for the central Figure 2 representation experiment.
+
+## Remaining reproducibility limits
+
+- Original 70M checkpoint provenance is now pinned and locally hash-checked; provenance of older deposited embedding identifiers remains unresolved.
+- The full author proteomics corpus, exact raw/corrected-view construction, drug-exclusion manifest, and complete training configuration have not been reproduced.
+- The small-corpus RNA control is matched by updates/settings, not by source distribution or the paper's bulk-RNA sample budget.
+- RNA evaluation rows are disjoint from our continued-training control, but original pretraining overlap and donor/study-level separation are unknown.
+- Final training/evaluation output files need independent audit; console execution and local assertions are not that audit.
+- Fresh unmasked/contextual gene and cell embeddings and downstream scores for our three checkpoints have not yet been generated.
+
 # Next steps
 
-1. Preserve the verified Phase 0 and Phase 1 diagnostics as comparison baselines.
-2. Preserve the upstream marginal PCA/RF reconstruction and resolve its remaining feature discrepancy and exact target-paper configuration.
-3. Preserve the audited MSigDB and tissue-separation evaluations; resolve the missing MSigDB PCA construction and checkpoint provenance, and independently audit the local tissue-separation output files.
-4. Resolve the Phase 0 author preprocessing and exact held-out manifest.
-5. Evaluate original versus proteomics-trained checkpoints under identical inputs, predictor, and scoring.
+1. Preserve completed classical baselines, deposited-artifact evaluations, original checkpoint, both trained checkpoints, and paired reconstruction outputs.
+2. Independently audit final training manifests/logs, checkpoint identities, and all paired per-cell reconstruction outputs without retraining.
+3. Generate fresh RNA-derived contextual gene and unmasked cell embeddings from original, protein-continued, and RNA-control checkpoints using identical input cells, feature mapping, preprocessing, and aggregation. Do not substitute static vocabulary embeddings or masked CLS diagnostics for contextual gene/cell representations.
+4. Run the established DepMap, MSigDB, and tissue-separation evaluations on those fresh embeddings, with common labels/splits/classifiers. This is the next test relevant to the paper's central claim.
+5. Resolve equivalence of the completed independent MSigDB PCA to the author construction, remaining DepMap feature differences, exact author evaluation configuration, deposited-embedding provenance, and local tissue-output audit limits.
+6. For exact paper reproduction, establish the full proteomics corpus, format-aware augmentation, training configuration, ARCHS4 controls, exclusions, and multi-seed protocol before retraining.
+7. Treat protein-perturbation transfer as a separate branch. Do not evaluate the PXD014791-trained checkpoint as unseen-drug transfer on PXD014791; ProTargetMiner remains unvalidated.
 
-No foundation-model checkpoint has been loaded for inference or trained in this project. Deposited gene embeddings have been evaluated through the MSigDB MLP task, and deposited cell embeddings through the tissue-separation task. Current results do not validate or refute the paper's continued-pretraining claims.
+**Where we stand:** actual 70M checkpoint loading, GPU inference/backpropagation, protein continued training, an equal-update RNA-only control, and paired RNA reconstruction evaluation are complete locally. The RNA control wins the reconstruction diagnostic. The central downstream representation claim remains untested with our newly trained checkpoints, and Figures 2 and 3 are not fully reproduced.
 
 ## Sources
 
 - [Target preprint](https://www.biorxiv.org/content/10.64898/2026.08.14.744845v1.full), DOI **10.64898/2026.08.14.744845**.
 - [PXD014791 source study](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8776854/), DOI **10.1038/s41597-021-01114-3**; Table 1 identifies `TRA` as Trametinib.
+- Published original checkpoint: `tahoebio/Tahoe-x1`, pinned revision `d218a580b9c2500ae9dfc8367a398545e6f017a8`, `70m-model` subdirectory.
+- Uploaded target-paper PDF: Methods, Figure 2 caption, protein-transfer protocol, and supplementary information; author claims are distinguished from local results above.
 - [Upstream DepMap random-forest implementation](https://github.com/tahoebio/tahoe-x1/blob/main/scripts/depmap/rf.py).
 
-The earlier README's claims that Trametinib was absent, that the formal data contained only 57 pairs, and that proprietary reprocessing was required are superseded. The verified data contain 60 formal pairs. `TRS` identity and the exact author split remain unresolved.
+The earlier README's claims that Trametinib was absent, that the formal data contained only 57 pairs, and that proprietary reprocessing was required are superseded. The verified data contain 60 formal pairs. The local `TRS` identity and exact author scoring split remain unresolved. The paper now establishes author drug-exclusion intent, while our all-sample PXD014791 training remains unsuitable for its held-out-drug claim.

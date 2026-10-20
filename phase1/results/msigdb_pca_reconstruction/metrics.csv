@@ -1,0 +1,4 @@
+seed,embedding,pooled_auprc,benchmark_genes,selected_test_log_loss,hidden_size,n_hidden_layers,dropout,scope
+0,pca_reconstructed,0.25946286760652737,775,0.12227226033823085,2048,1,0.5,independent_PCA_reconstruction
+1,pca_reconstructed,0.23418525748359878,775,0.12628380499666542,2048,1,0.5,independent_PCA_reconstruction
+2,pca_reconstructed,0.23161234738549097,775,0.12694959897179386,1024,1,0.5,independent_PCA_reconstruction
